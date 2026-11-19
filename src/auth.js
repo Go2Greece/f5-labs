@@ -41,7 +41,7 @@ function errorPage(message, status = 400) {
   const safe = String(message).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
   return new Response(
     `<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign-in problem</title>
-<body style="font-family:system-ui,Arial,sans-serif;max-width:520px;margin:12vh auto;padding:24px;color:#1B2523">
+<body style="font-family:Archivo,"Helvetica Neue",Helvetica,Arial,sans-serif;max-width:520px;margin:12vh auto;padding:24px;color:#0a0e1c">
 <h1 style="font-size:20px">Sign-in did not complete</h1><p>${safe}</p><p><a href="/">Back to the front page</a></p></body>`,
     { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
   );

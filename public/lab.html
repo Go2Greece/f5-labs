@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap">
 <title>Lab | F5 Labs</title>
 <link rel="stylesheet" href="/app.css">
 </head>
@@ -15,13 +17,28 @@
   </div>
   <div class="rotate"><h1>Turn your device sideways</h1><p>The lab needs a landscape screen.</p></div>
   <div class="cols">
-    <nav class="nav" id="nav" aria-label="Device menu"></nav>
-    <section class="device">
-      <div class="devbar">
-        <div id="devinfo"></div>
-        <div class="right"><span class="pending" id="pending" hidden>Changes not yet applied</span><button class="btn small" id="apply" type="button">Apply</button></div>
+    <section class="win" aria-label="Simulated device">
+      <div class="banner" id="banner"></div>
+      <div class="devhead" id="devhead"></div>
+      <div class="mast">
+        <div class="brand" id="brand"><img src="/logo.png" alt="Graham Mattingley, F5 Technologies Instructor"><span class="sim">LAB SIMULATOR</span></div>
+        <ul class="status" id="status"></ul>
       </div>
-      <div class="screen" id="screen"></div>
+      <div class="strip">
+        <div class="mtabs"><span class="on">Main</span><span>Help</span><span>About</span></div>
+        <div class="pathbar" id="pathbar"></div>
+      </div>
+      <div class="body">
+        <nav class="nav" id="nav" aria-label="Device menu"></nav>
+        <div class="device">
+          <div class="tabs" id="tabsbar" hidden></div>
+          <div class="devbar">
+            <div id="devinfo"></div>
+            <div class="right"><span class="pending" id="pending" hidden>Changes not yet applied</span><button class="btn small" id="apply" type="button">Apply</button></div>
+          </div>
+          <div class="screen" id="screen"></div>
+        </div>
+      </div>
     </section>
     <aside class="lesson" aria-label="Lesson steps">
       <div class="head"><h2 id="ltitle"></h2><p id="lintro"></p></div>

@@ -252,40 +252,47 @@
 
   function renderScreen() {
     var s = lab.screens[current], box = $('screen'); box.textContent = '';
-    box.appendChild(el('div', s.pathText || (s.path || []).join(' › '), 'path'));
-    if (s.tabs) {
-      var tabs = el('div', undefined, 'tabs');
-      s.tabs.forEach(function (tb0) {
-        var tbn = el('button', tb0.label); tbn.type = 'button';
-        if (tb0.screen && (tb0.screen === current || tb0.screen === s.tabOn)) tbn.className = 'on';
-        if (tb0.screen) tbn.addEventListener('click', function () { go(tb0.screen); });
-        else { tbn.disabled = true; tbn.title = 'Not part of this lab'; }
-        tabs.appendChild(tbn);
-      });
-      box.appendChild(tabs);
-    }
-    box.appendChild(el('h1', s.title));
+    var pb = $('pathbar'), ptxt = s.pathText || (s.path || []).join(' : '), parts = ptxt.split(' \u00BB ');
+    pb.textContent = '';
+    parts.forEach(function (part, k) {
+      if (k) pb.appendChild(el('span', ' \u00BB ', 'sep'));
+      pb.appendChild(el('span', part, k === parts.length - 1 && k > 0 ? 'here' : ''));
+    });
+    var tabs = $('tabsbar'); tabs.textContent = ''; tabs.hidden = !s.tabs;
+    (s.tabs || []).forEach(function (tb0) {
+      var tbn = el('button', tb0.label); tbn.type = 'button';
+      if (tb0.screen && (tb0.screen === current || tb0.screen === s.tabOn)) tbn.className = 'on';
+      if (tb0.screen) tbn.addEventListener('click', function () { go(tb0.screen); });
+      else { tbn.disabled = true; tbn.title = 'Not part of this lab'; }
+      tabs.appendChild(tbn);
+    });
     if (flash) box.appendChild(el('div', flash, 'flash'));
+    var titleRow = el('div', undefined, 'titlerow'); titleRow.appendChild(el('h1', s.title)); box.appendChild(titleRow);
 
     if (s.type === 'list') {
       var rows = cfgGet(s.collection) || [];
       var selected = {};
       if (s.createScreen) {
-        var tb = el('div', undefined, 'toolbar');
-        var cr = el('button', s.createLabel || 'Create', 'btn small'); cr.type = 'button'; cr.addEventListener('click', function () { go(s.createScreen); }); tb.appendChild(cr);
-        box.appendChild(tb);
+        var cr = el('button', s.createLabel || 'Create', 'btn small create'); cr.type = 'button'; cr.addEventListener('click', function () { go(s.createScreen); });
+        titleRow.appendChild(cr);
       }
+      var wrap = el('div', undefined, 'listbox');
       var t = el('table', undefined, 'grid'), hr = el('tr');
-      if (s.allowDelete) hr.appendChild(el('th', ''));
+      var boxes = [];
+      if (s.allowDelete) {
+        var thc = el('th', undefined, 'chk'), all = el('input'); all.type = 'checkbox'; all.setAttribute('aria-label', 'Select all rows');
+        all.addEventListener('change', function () { boxes.forEach(function (cb, i) { cb.checked = all.checked; selected[i] = all.checked; }); });
+        thc.appendChild(all); hr.appendChild(thc);
+      }
       s.columns.forEach(function (c) { hr.appendChild(el('th', c.label)); });
       var thead = el('thead'); thead.appendChild(hr); t.appendChild(thead);
       var tbody = el('tbody');
       if (!rows.length) { var e = el('td', s.emptyText || 'No records to display.', 'empty'); e.colSpan = s.columns.length + (s.allowDelete ? 1 : 0); var er = el('tr'); er.appendChild(e); tbody.appendChild(er); }
       rows.forEach(function (r, i) {
         var tr = el('tr');
-        if (s.allowDelete) { var td = el('td'), cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1)); cb.addEventListener('change', function () { selected[i] = cb.checked; }); td.appendChild(cb); tr.appendChild(td); }
+        if (s.allowDelete) { var td = el('td', undefined, 'chk'), cb = el('input'); boxes.push(cb); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1)); cb.addEventListener('change', function () { selected[i] = cb.checked; }); td.appendChild(cb); tr.appendChild(td); }
         s.columns.forEach(function (c) {
-          if (!c.link) { tr.appendChild(el('td', r[c.field])); return; }
+          if (!c.link) { var cell = el('td'); cell.appendChild(el('span', r[c.field], c.style === 'link' ? 'linkish' : '')); tr.appendChild(cell); return; }
           // A linked cell opens that record, for example clicking a policy name selects the policy.
           var td2 = el('td'), a = el('a', r[c.field]); a.href = '#';
           a.addEventListener('click', function (ev) {
@@ -297,16 +304,18 @@
         });
         tbody.appendChild(tr);
       });
-      t.appendChild(tbody); box.appendChild(t);
+      t.appendChild(tbody); wrap.appendChild(t); box.appendChild(wrap);
+      var foot = el('div', undefined, 'listfoot'); box.appendChild(foot);
       if (s.allowDelete) {
-        var del = el('button', 'Delete', 'btn small ghost'); del.type = 'button'; del.style.marginTop = '8px';
+        var del = el('button', 'Delete', 'btn small ghost'); del.type = 'button';
         del.addEventListener('click', function () {
           var keep = rows.filter(function (_, i) { return !selected[i]; });
           if (keep.length === rows.length) return;
           cfgSet(s.collection, keep); go(current, 'Deleted.'); send();
         });
-        box.appendChild(del);
-      }
+        foot.appendChild(del);
+      } else foot.appendChild(el('span'));
+      foot.appendChild(el('span', 'Total Entries: ' + rows.length, 'total'));
     }
 
     if (s.type === 'create') {
@@ -356,6 +365,31 @@
     [b.version, b.module].forEach(function (x) { c.appendChild(document.createTextNode(' › ' + x)); });
     c.appendChild(document.createTextNode(' › ')); c.appendChild(el('b', b.lab));
     $('ltitle').textContent = lab.title; $('lintro').textContent = lab.intro || '';
+    // Device chrome: banner, header strip with a live clock, and the status lines.
+    var dev = lab.device || {};
+    var banner = $('banner'); banner.textContent = (dev.banner && dev.banner.text) || dev.hostname || ''; banner.hidden = !banner.textContent;
+    if (dev.banner && dev.banner.color) banner.style.background = dev.banner.color;
+    var head = $('devhead'); head.textContent = '';
+    function pair(rows) {
+      var g = el('div', undefined, 'grp');
+      rows.forEach(function (kv) { g.appendChild(el('i', kv[0])); var v = el('b', kv[1]); if (kv[2]) v.id = kv[2]; g.appendChild(v); });
+      head.appendChild(g);
+    }
+    pair([['Hostname', dev.hostname || ''], ['IP Address', dev.ip || '']]);
+    pair([['Date', '', 'devdate'], ['Time', '', 'devtime']]);
+    pair([['User', dev.user || 'admin'], ['Role', dev.role || 'Administrator']]);
+    var rt = el('div', undefined, 'grp end');
+    rt.appendChild(el('i', 'Partition:')); var part = el('select'); part.disabled = true; part.appendChild(el('option', dev.partition || 'Common')); part.setAttribute('aria-label', 'Partition'); rt.appendChild(part);
+    var lo = el('span', 'Log out', 'logout'); lo.title = 'Not part of this lab'; rt.appendChild(lo);
+    head.appendChild(rt);
+    function tick() {
+      var n = new Date();
+      $('devdate').textContent = n.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      $('devtime').textContent = n.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    tick(); setInterval(tick, 30000);
+    var st = $('status'); st.textContent = '';
+    (dev.status || []).forEach(function (x) { var li = el('li', x.text); li.className = x.level || 'ok'; st.appendChild(li); });
     var info = $('devinfo'); info.textContent = '';
     if (lab.policySelector) {
       // The policy selector: every policy screen shows and edits the policy chosen here.

@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 5,
+  "rev": 7,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -8,8 +8,34 @@
   "title": "Block a URL with a disallowed URL entry",
   "intro": "The application behind the OWASP_Essentials policy has an admin page at /admin that must never be reachable from the internet. Select that policy, add /admin as a disallowed URL, put the policy in blocking mode, apply it, then prove the request is blocked.",
   "device": {
-    "hostname": "bigip1.lab.local",
-    "learningMode": "Fully Automatic (Real Time Auto-Apply)"
+    "hostname": "bigip1.lab.approxee.com",
+    "ip": "192.168.2.12",
+    "user": "admin",
+    "role": "Administrator",
+    "partition": "Common",
+    "banner": {
+      "text": "bigip1.lab.approxee.com - ApplicationTier",
+      "color": "#e8901a"
+    },
+    "learningMode": "Fully Automatic (Real Time Auto-Apply)",
+    "status": [
+      {
+        "text": "Firewall: Consistent",
+        "level": "ok"
+      },
+      {
+        "text": "ONLINE (ACTIVE)",
+        "level": "ok"
+      },
+      {
+        "text": "Disconnected",
+        "level": "error"
+      },
+      {
+        "text": "Live Updates Available",
+        "level": "warn"
+      }
+    ]
   },
   "applyLabel": "Apply Policy",
   "startScreen": "policies",
@@ -272,7 +298,8 @@
         },
         {
           "field": "url",
-          "label": "URL"
+          "label": "URL",
+          "style": "link"
         }
       ],
       "pathText": "Security » Application Security : URLs : Allowed URLs : Allowed HTTP URLs",
@@ -335,13 +362,14 @@
         },
         {
           "field": "url",
-          "label": "URL"
+          "label": "URL",
+          "style": "link"
         }
       ]
     },
     "disallowedUrlCreate": {
       "type": "create",
-      "pathText": "Security » Application Security : URLs : Disallowed URLs : Disallowed HTTP URLs",
+      "pathText": "Security » Application Security : URLs : Disallowed URLs : Disallowed HTTP URLs » New Disallowed HTTP URL...",
       "tabs": [
         {
           "label": "Allowed URLs",
@@ -445,7 +473,7 @@
     "policyGeneral": {
       "type": "form",
       "returnTo": "policies",
-      "pathText": "Security » Application Security : Security Policies : Policies List : General Settings",
+      "pathText": "Security » Application Security : Security Policies : Policies List » General Settings",
       "title": "General Settings",
       "fields": [
         {
