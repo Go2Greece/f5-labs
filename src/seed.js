@@ -36,7 +36,8 @@ export async function syncDrafts(db) {
       if (!doc.draft) continue;
       const cur = await col.findOne({ _id: doc._id }, { projection: { rev: 1, draft: 1 } });
       if (!cur) await col.insertOne({ ...doc, seededAt: new Date() });
-      else if (cur.draft === true && (cur.rev || 0) < (doc.rev || 0)) {
+      // Records loaded before revisions existed have no rev at all; they count as drafts too.
+      else if ((cur.draft === true || cur.rev === undefined) && (cur.rev || 0) < (doc.rev || 0)) {
         await col.replaceOne({ _id: doc._id }, { ...doc, seededAt: new Date() });
       }
     }
