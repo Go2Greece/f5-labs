@@ -107,7 +107,8 @@
     var wrap = el('div', undefined, 'ctl');
     if (f.type === 'select') {
       var sel = el('select'); sel.id = 'f_' + f.id;
-      (f.options || []).forEach(function (o) { var op = el('option', o); op.value = o; sel.appendChild(op); });
+      (f.options || []).forEach(function (o) { var isObj = o && typeof o === 'object'; var op = el('option', isObj ? o.label : o); op.value = isObj ? o.value : o; sel.appendChild(op); });
+      sel.setAttribute('aria-label', f.label);
       sel.value = value; sel.addEventListener('change', function () { onChange(sel.value); }); wrap.appendChild(sel);
     } else if (f.type === 'radio') {
       (f.options || []).forEach(function (o) {
@@ -121,11 +122,25 @@
     } else {
       var inp = el('input'); inp.type = 'text'; inp.id = 'f_' + f.id; inp.value = value == null ? '' : value; inp.autocomplete = 'off'; inp.spellcheck = false;
       if (f.placeholder) inp.placeholder = f.placeholder;
+      inp.setAttribute('aria-label', f.label);
       inp.addEventListener('input', function () { onChange(inp.value); }); wrap.appendChild(inp);
     }
     if (f.help) wrap.appendChild(el('div', f.help, 'help'));
     var err = el('div', '', 'err'); err.id = 'e_' + f.id; err.hidden = true; wrap.appendChild(err);
     return wrap;
+  }
+
+  // One labelled row holding several controls side by side, as on the device.
+  function inlineRow(spec, fields, values) {
+    var form = el('div', undefined, 'form'), row = el('div', undefined, 'row');
+    var lb = el('div', spec.label, 'lbl'); if (spec.help) lb.appendChild(el('div', spec.help, 'help'));
+    row.appendChild(lb);
+    var ctl = el('div', undefined, 'ctl inline');
+    fields.forEach(function (f) {
+      var c = fieldControl(f, values[f.id], function (v) { values[f.id] = v; });
+      c.className = 'cell' + (f.type === 'text' ? ' grow' : ''); ctl.appendChild(c);
+    });
+    row.appendChild(ctl); form.appendChild(row); return form;
   }
 
   function formRows(fields, values) {
@@ -142,25 +157,27 @@
 
   function renderScreen() {
     var s = lab.screens[current], box = $('screen'); box.textContent = '';
-    box.appendChild(el('div', (s.path || []).join(' › '), 'path'));
+    box.appendChild(el('div', s.pathText || (s.path || []).join(' › '), 'path'));
+    if (s.tabs) {
+      var tabs = el('div', undefined, 'tabs');
+      s.tabs.forEach(function (tb0) {
+        var tbn = el('button', tb0.label); tbn.type = 'button';
+        if (tb0.screen && (tb0.screen === current || tb0.screen === s.tabOn)) tbn.className = 'on';
+        if (tb0.screen) tbn.addEventListener('click', function () { go(tb0.screen); });
+        else { tbn.disabled = true; tbn.title = 'Not part of this lab'; }
+        tabs.appendChild(tbn);
+      });
+      box.appendChild(tabs);
+    }
     box.appendChild(el('h1', s.title));
     if (flash) box.appendChild(el('div', flash, 'flash'));
 
     if (s.type === 'list') {
       var rows = getPath(state.config, s.collection) || [];
       var selected = {};
-      if (s.createScreen || s.allowDelete) {
+      if (s.createScreen) {
         var tb = el('div', undefined, 'toolbar');
-        if (s.allowDelete) {
-          var del = el('button', 'Delete', 'btn small ghost'); del.type = 'button';
-          del.addEventListener('click', function () {
-            var keep = rows.filter(function (_, i) { return !selected[i]; });
-            if (keep.length === rows.length) return;
-            setPath(state.config, s.collection, keep); go(current, 'Deleted.'); send();
-          });
-          tb.appendChild(del);
-        }
-        if (s.createScreen) { var cr = el('button', 'Create', 'btn small'); cr.type = 'button'; cr.addEventListener('click', function () { go(s.createScreen); }); tb.appendChild(cr); }
+        var cr = el('button', s.createLabel || 'Create', 'btn small'); cr.type = 'button'; cr.addEventListener('click', function () { go(s.createScreen); }); tb.appendChild(cr);
         box.appendChild(tb);
       }
       var t = el('table', undefined, 'grid'), hr = el('tr');
@@ -176,11 +193,20 @@
         tbody.appendChild(tr);
       });
       t.appendChild(tbody); box.appendChild(t);
+      if (s.allowDelete) {
+        var del = el('button', 'Delete', 'btn small ghost'); del.type = 'button'; del.style.marginTop = '8px';
+        del.addEventListener('click', function () {
+          var keep = rows.filter(function (_, i) { return !selected[i]; });
+          if (keep.length === rows.length) return;
+          setPath(state.config, s.collection, keep); go(current, 'Deleted.'); send();
+        });
+        box.appendChild(del);
+      }
     }
 
     if (s.type === 'create') {
       var vals = {}; s.fields.forEach(function (f) { vals[f.id] = f.default !== undefined ? f.default : (f.type === 'checkbox' ? false : ''); });
-      box.appendChild(formRows(s.fields, vals));
+      box.appendChild(s.inlineRow ? inlineRow(s.inlineRow, s.fields, vals) : formRows(s.fields, vals));
       var act = el('div', undefined, 'actions');
       var cancel = el('button', 'Cancel', 'btn ghost'); cancel.type = 'button'; cancel.addEventListener('click', function () { go(s.returnTo); });
       var create = el('button', 'Create', 'btn'); create.type = 'button';
@@ -192,6 +218,7 @@
           if (f.required && !v) msg = f.label + ' is required.';
           else if (f.mustStartWith && String(v).indexOf(f.mustStartWith) !== 0) msg = f.label + ' must start with ' + f.mustStartWith;
           var e = $('e_' + f.id); e.textContent = msg; e.hidden = !msg; if (msg) ok = false;
+          if (f.type === 'select' && f.options) vals[f.id] = v;
         });
         if (!ok) return;
         var list = (getPath(state.config, s.collection) || []).slice(); list.push(clone(vals));
@@ -224,7 +251,8 @@
     [b.version, b.module].forEach(function (x) { c.appendChild(document.createTextNode(' › ' + x)); });
     c.appendChild(document.createTextNode(' › ')); c.appendChild(el('b', b.lab));
     $('ltitle').textContent = lab.title; $('lintro').textContent = lab.intro || '';
-    $('devinfo').textContent = [lab.device.hostname, lab.device.policy ? 'Policy: ' + lab.device.policy : ''].filter(Boolean).join('  |  ');
+    $('devinfo').textContent = [lab.device.hostname, lab.device.policy ? 'Policy: ' + lab.device.policy : '', lab.device.learningMode ? 'Learning Mode: ' + lab.device.learningMode : ''].filter(Boolean).join('  |  ');
+    $('pending').textContent = lab.pendingText;
     $('apply').textContent = lab.applyLabel;
     $('apply').addEventListener('click', function () {
       state.applied = clone(state.config); flash = 'Policy applied.'; renderScreen(); renderBar(); send();

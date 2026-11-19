@@ -37,7 +37,8 @@ p{margin:0 0 14px;color:#55625F;line-height:1.5}
 .nav button.on{background:#0B5E54;color:#fff;border-left-color:#7FD6C6}
 .device{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border-left:1px solid #D5DDDA;border-right:1px solid #D5DDDA}
 .devbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:#EEF2F1;border-bottom:1px solid #D5DDDA;font-size:12px;color:#55625F}
-.devbar .pending{color:#8A4205;font-weight:600}
+.devbar .pending{color:#8A4205;font-weight:600;white-space:nowrap}
+.devbar .btn{white-space:nowrap}
 .devbar .right{display:flex;align-items:center;gap:10px}
 .screen{padding:16px;overflow:auto;flex:1;min-height:0}
 .screen .path{font-size:12px;color:#55625F;margin-bottom:6px}
@@ -99,3 +100,12 @@ ol.steps small{display:block;color:#55625F;font-size:12px;margin-top:2px}
   .lab .cols{display:none}
   .rotate{display:block;padding:40px 24px;text-align:center}
 }
+
+.tabs{display:flex;flex-wrap:wrap;gap:2px;margin:0 0 12px;border-bottom:2px solid #D5DDDA}
+.tabs button{font:inherit;font-size:13px;padding:7px 12px;border:0;background:#EEF2F1;color:#1B2523;cursor:pointer;border-radius:5px 5px 0 0}
+.tabs button.on{background:#12302B;color:#fff;font-weight:600}
+.tabs button:disabled{color:#8A9692;cursor:default}
+.form .ctl.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.form .ctl.inline .cell select{width:auto;max-width:none}
+.form .ctl.inline .cell.grow{flex:1;min-width:160px}
+.form .lbl .help{font-weight:400}

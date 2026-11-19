@@ -52,6 +52,7 @@ function publicLab(lab) {
     intro: lab.intro,
     device: lab.device || {},
     applyLabel: lab.applyLabel || "Apply",
+    pendingText: lab.pendingText || "Changes not yet applied",
     startScreen: lab.startScreen,
     menu: lab.menu || [],
     screens: lab.screens || {},
