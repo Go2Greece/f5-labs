@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 13,
+  "rev": 14,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -83,7 +83,27 @@
           "maxCookieLength": "8192",
           "trustXff": "Disabled",
           "template": "Fundamental",
-          "virtualServer": "vs_portal_https"
+          "virtualServer": "vs_portal_https",
+          "fileTypes": [
+            {
+              "fileType": "no_ext",
+              "allowed": true,
+              "urlLength": 100,
+              "requestLength": 5000,
+              "queryStringLength": 1000,
+              "postDataLength": 1000,
+              "status": "Staging"
+            },
+            {
+              "fileType": "* (Wildcard)",
+              "allowed": true,
+              "urlLength": 100,
+              "requestLength": 5000,
+              "queryStringLength": 1000,
+              "postDataLength": 1000,
+              "status": "Staging"
+            }
+          ]
         },
         "OWASP_Essentials": {
           "enforcementMode": "Transparent",
@@ -112,7 +132,27 @@
           "maxCookieLength": "8192",
           "trustXff": "Disabled",
           "template": "Comprehensive",
-          "virtualServer": "vs_web_https"
+          "virtualServer": "vs_web_https",
+          "fileTypes": [
+            {
+              "fileType": "no_ext",
+              "allowed": true,
+              "urlLength": 100,
+              "requestLength": 5000,
+              "queryStringLength": 1000,
+              "postDataLength": 1000,
+              "status": "Staging"
+            },
+            {
+              "fileType": "* (Wildcard)",
+              "allowed": true,
+              "urlLength": 100,
+              "requestLength": 5000,
+              "queryStringLength": 1000,
+              "postDataLength": 1000,
+              "status": "Staging"
+            }
+          ]
         }
       }
     }
@@ -281,6 +321,65 @@
       ]
     }
   ],
+  "sidePanels": {
+    "policy": [
+      {
+        "label": "Policy Configuration",
+        "open": true,
+        "items": [
+          {
+            "label": "General Settings",
+            "screen": "policyGeneral"
+          },
+          {
+            "label": "Audit Log"
+          },
+          {
+            "label": "Attack Signatures"
+          },
+          {
+            "label": "Threat Campaigns"
+          },
+          {
+            "label": "IP Intelligence"
+          },
+          {
+            "label": "IP Address Exceptions"
+          },
+          {
+            "label": "Sessions and Logins"
+          },
+          {
+            "label": "Response and Blocking Pages"
+          }
+        ]
+      },
+      {
+        "label": "HTTP Message Protection",
+        "open": false,
+        "items": [
+          {
+            "label": "File Types",
+            "screen": "fileTypes"
+          },
+          {
+            "label": "Headers"
+          },
+          {
+            "label": "Cookies"
+          },
+          {
+            "label": "Microservices"
+          }
+        ]
+      },
+      {
+        "label": "Advanced Protection",
+        "open": false,
+        "items": []
+      }
+    ]
+  },
   "screens": {
     "policies": {
       "type": "list",
@@ -522,62 +621,6 @@
           }
         ]
       },
-      "sidePanel": [
-        {
-          "label": "Policy Configuration",
-          "open": true,
-          "items": [
-            {
-              "label": "General Settings",
-              "screen": "policyGeneral"
-            },
-            {
-              "label": "Audit Log"
-            },
-            {
-              "label": "Attack Signatures"
-            },
-            {
-              "label": "Threat Campaigns"
-            },
-            {
-              "label": "IP Intelligence"
-            },
-            {
-              "label": "IP Address Exceptions"
-            },
-            {
-              "label": "Sessions and Logins"
-            },
-            {
-              "label": "Response and Blocking Pages"
-            }
-          ]
-        },
-        {
-          "label": "HTTP Message Protection",
-          "open": false,
-          "items": [
-            {
-              "label": "File Types"
-            },
-            {
-              "label": "Headers"
-            },
-            {
-              "label": "Cookies"
-            },
-            {
-              "label": "Microservices"
-            }
-          ]
-        },
-        {
-          "label": "Advanced Protection",
-          "open": false,
-          "items": []
-        }
-      ],
       "sections": [
         {
           "fields": [
@@ -744,6 +787,91 @@
               "bind": "policyData.$policy.trustXff"
             }
           ]
+        }
+      ],
+      "sidePanel": "policy"
+    },
+    "fileTypes": {
+      "type": "list",
+      "style": "modern",
+      "returnTo": "policies",
+      "sidePanel": "policy",
+      "pathText": "Security » Application Security : Security Policies : Policies List » $policy",
+      "title": "",
+      "header": {
+        "back": "policies",
+        "buttons": [
+          "Export"
+        ],
+        "facts": [
+          {
+            "label": "Enforcement Mode",
+            "bind": "policyData.$policy.enforcementMode"
+          },
+          {
+            "label": "Learning Mode",
+            "text": "Fully Automatic (Real Time Auto-Apply)"
+          }
+        ]
+      },
+      "collection": "policyData.$policy.fileTypes",
+      "summary": [
+        {
+          "bold": "{n} Allowed File Types",
+          "text": "ready to be enforced"
+        },
+        {
+          "bold": "0 Allowed File Types",
+          "text": "have suggestions"
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Create",
+          "kind": "primary",
+          "menu": true
+        },
+        {
+          "label": "Enforce",
+          "kind": "primary"
+        },
+        {
+          "label": "Stage"
+        },
+        {
+          "label": "Delete"
+        }
+      ],
+      "columns": [
+        {
+          "field": "fileType",
+          "label": "File Type",
+          "style": "link"
+        },
+        {
+          "field": "allowed",
+          "label": "Allowed",
+          "type": "check"
+        },
+        {
+          "field": "urlLength",
+          "label": "URL Length"
+        },
+        {
+          "field": "requestLength",
+          "label": "Request Length"
+        },
+        {
+          "field": "queryStringLength",
+          "label": "Query String Length"
+        },
+        {
+          "field": "postDataLength",
+          "label": "POST Data Length"
+        },
+        {
+          "field": "status",
+          "label": "Status"
         }
       ]
     }

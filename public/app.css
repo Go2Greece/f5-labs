@@ -331,3 +331,22 @@ input.num{font:inherit;width:70px;padding:4px 8px;border:1px solid #c3c7d1;borde
 .polpage .side button.sitem:first-of-type{border-top:1px solid #c3c7d1}
 .polpage .side button.sitem.on{background:#dce8f5;font-weight:700}
 .polpage .side button.sitem:disabled{color:#9aa0ad}
+
+/* Policy-page list (File Types and similar) */
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 8px}
+.msum{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12px;color:#2c3140}
+.msum b{color:#0a0e1c}
+.macts{display:flex;gap:8px;flex-wrap:wrap}
+.mbtn{font:inherit;font-size:13px;font-weight:700;padding:5px 16px;border-radius:2px;border:1px solid #c3c7d1;background:#fff;color:#0a0e1c;cursor:pointer}
+.mbtn.primary{background:#3d62b3;border-color:#2a4a94;color:#fff}
+.mbtn:disabled{background:#f4f4f2;border-color:#dcdfe6;color:#9aa0ad;cursor:default}
+.mfilter{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #9aa0ad;border-bottom:1px solid #9aa0ad;padding:6px 8px;font-size:12px}
+.mfilter .ficon{color:#2c3140;border-right:1px solid #9aa0ad;padding-right:10px}
+table.mgrid{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+table.mgrid th{text-align:left;font-weight:700;padding:12px 8px;border-bottom:1px solid #9aa0ad;vertical-align:bottom}
+table.mgrid td{padding:11px 8px;border-bottom:1px solid #c3c7d1}
+table.mgrid .chk{width:1%;padding-left:32px}
+table.mgrid .linkish{color:#3b5fb0}
+table.mgrid .tickmark{color:#3d62b3;font-weight:700;font-size:15px}
+table.mgrid td.empty{text-align:center;color:#4b5160}
+table.mgrid td .linkish{white-space:nowrap}

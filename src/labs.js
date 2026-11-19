@@ -66,6 +66,7 @@ function publicLab(lab) {
     startScreen: lab.startScreen,
     menu: lab.menu || [],
     screens: lab.screens || {},
+    sidePanels: lab.sidePanels || {},
     tests: (lab.tests || []).map((t) => ({ id: t.id, label: t.label, request: t.request })),
     steps: (lab.steps || []).map((s) => ({ id: s.id, text: s.text })),
   };

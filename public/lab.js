@@ -3,7 +3,7 @@
 // the server decides which steps are done.
 (function () {
   var labId = new URLSearchParams(location.search).get('id') || '';
-  var sideOpen = {};
+  var sideOpen = {}, sideNav = null;
   var lab = null, state = null, steps = {}, current = null, flash = '', lastTest = null, busy = 0;
 
   function $(id) { return document.getElementById(id); }
@@ -318,11 +318,77 @@
       else { tbn.disabled = true; tbn.title = 'Not part of this lab'; }
       tabs.appendChild(tbn);
     });
-    if (flash) box.appendChild(el('div', flash, 'flash'));
-    var titleRow = el('div', undefined, 'titlerow'); titleRow.appendChild(el('h1', s.title || '')); if (s.title || s.createScreen) box.appendChild(titleRow);
     renderHeader(s);
+    // A screen can sit inside a page with a section list on the left (the policy page).
+    // The section list is defined once in the lab record and shared by those screens.
+    var host = box, panel = typeof s.sidePanel === 'string' ? (lab.sidePanels || {})[s.sidePanel] : s.sidePanel;
+    if (panel) {
+      var page = el('div', undefined, 'polpage'), side = el('div', undefined, 'side');
+      panel.forEach(function (g) {
+        // Section groups open and close when clicked, like the device.
+        var hasCurrent = (g.items || []).some(function (it) { return it.screen === current; });
+        if (!(g.label in sideOpen)) sideOpen[g.label] = Boolean(g.open);
+        if (hasCurrent && sideNav !== current) sideOpen[g.label] = true;
+        var isOpen = sideOpen[g.label];
+        var gh = el('button', undefined, 'sgrp'); gh.type = 'button'; gh.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        gh.appendChild(el('span', isOpen ? '\u25BE' : '\u25B8', 'tog')); gh.appendChild(document.createTextNode(g.label));
+        gh.addEventListener('click', function () { sideOpen[g.label] = !isOpen; renderScreen(); });
+        side.appendChild(gh);
+        if (isOpen) (g.items || []).forEach(function (it) {
+          var sb2 = el('button', it.label, 'sitem'); sb2.type = 'button';
+          if (it.screen === current) sb2.classList.add('on');
+          if (it.screen) sb2.addEventListener('click', function () { go(it.screen); });
+          else { sb2.disabled = true; sb2.title = 'Not part of this lab'; }
+          side.appendChild(sb2);
+        });
+      });
+      sideNav = current;
+      host = el('div', undefined, 'main'); page.appendChild(side); page.appendChild(host); box.appendChild(page);
+    }
+    if (flash) host.appendChild(el('div', flash, 'flash'));
+    var titleRow = el('div', undefined, 'titlerow'); titleRow.appendChild(el('h1', s.title || '')); if (s.title || s.createScreen) host.appendChild(titleRow);
 
-    if (s.type === 'list') {
+    if (s.type === 'list' && s.style === 'modern') {
+      // Policy-page list: a summary line with action buttons, a filter bar and a plain table.
+      var mrows = cfgGet(s.collection) || [], msel = {}, mboxes = [];
+      var top = el('div', undefined, 'mtop'), sum = el('div', undefined, 'msum'), acts = el('div', undefined, 'macts');
+      (s.summary || []).forEach(function (it) {
+        var sp = el('span'); sp.appendChild(el('b', String(it.bold || '').replace('{n}', mrows.length))); sp.appendChild(document.createTextNode(' ' + (it.text || ''))); sum.appendChild(sp);
+      });
+      (s.buttons || []).forEach(function (bt) {
+        var b = el('button', bt.label + (bt.menu ? ' \u25BE' : ''), 'mbtn ' + (bt.kind || 'plain')); b.type = 'button';
+        if (bt.screen) b.addEventListener('click', function () { go(bt.screen); });
+        else if (bt.op === 'delete') b.addEventListener('click', function () {
+          var keep = mrows.filter(function (_, i) { return !msel[i]; });
+          if (keep.length === mrows.length) return;
+          cfgSet(s.collection, keep); go(current, 'Deleted.'); send();
+        });
+        else { b.disabled = true; b.title = 'Not part of this lab'; }
+        acts.appendChild(b);
+      });
+      top.appendChild(sum); top.appendChild(acts); host.appendChild(top);
+      var fbar = el('div', undefined, 'mfilter'); fbar.appendChild(el('span', '\u25BD\u25BE', 'ficon')); fbar.appendChild(el('span', mrows.length + ' Entries', 'ents')); host.appendChild(fbar);
+      var mt = el('table', undefined, 'mgrid'), mh = el('tr'), mth = el('th', undefined, 'chk'), mall = el('input');
+      mall.type = 'checkbox'; mall.setAttribute('aria-label', 'Select all rows');
+      mall.addEventListener('change', function () { mboxes.forEach(function (cb, i) { cb.checked = mall.checked; msel[i] = mall.checked; }); });
+      mth.appendChild(mall); mh.appendChild(mth);
+      s.columns.forEach(function (c) { mh.appendChild(el('th', c.label)); });
+      var mhead = el('thead'); mhead.appendChild(mh); mt.appendChild(mhead);
+      var mbody = el('tbody');
+      mrows.forEach(function (r, i) {
+        var tr = el('tr'), tdc = el('td', undefined, 'chk'), cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1));
+        cb.addEventListener('change', function () { msel[i] = cb.checked; }); mboxes.push(cb); tdc.appendChild(cb); tr.appendChild(tdc);
+        s.columns.forEach(function (c) {
+          var td = el('td'), v = r[c.field];
+          if (c.type === 'check') td.appendChild(el('span', v ? '\u2713' : '', 'tickmark'));
+          else td.appendChild(el('span', v == null ? '' : String(v), c.style === 'link' ? 'linkish' : ''));
+          tr.appendChild(td);
+        });
+        mbody.appendChild(tr);
+      });
+      if (!mrows.length) { var me = el('td', s.emptyText || 'No records to display.', 'empty'); me.colSpan = s.columns.length + 1; var mer = el('tr'); mer.appendChild(me); mbody.appendChild(mer); }
+      mt.appendChild(mbody); host.appendChild(mt);
+    } else if (s.type === 'list') {
       var rows = cfgGet(s.collection) || [];
       var selected = {};
       if (s.createScreen) {
@@ -357,8 +423,8 @@
         });
         tbody.appendChild(tr);
       });
-      t.appendChild(tbody); wrap.appendChild(t); box.appendChild(wrap);
-      var foot = el('div', undefined, 'listfoot'); box.appendChild(foot);
+      t.appendChild(tbody); wrap.appendChild(t); host.appendChild(wrap);
+      var foot = el('div', undefined, 'listfoot'); host.appendChild(foot);
       if (s.allowDelete) {
         var del = el('button', 'Delete', 'btn small ghost'); del.type = 'button';
         del.addEventListener('click', function () {
@@ -373,7 +439,7 @@
 
     if (s.type === 'create') {
       var vals = {}; s.fields.forEach(function (f) { vals[f.id] = f.default !== undefined ? f.default : (f.type === 'checkbox' ? false : ''); });
-      box.appendChild(s.inlineRow ? inlineRow(s.inlineRow, s.fields, vals) : formRows(s.fields, vals));
+      host.appendChild(s.inlineRow ? inlineRow(s.inlineRow, s.fields, vals) : formRows(s.fields, vals));
       var act = el('div', undefined, 'actions');
       var cancel = el('button', 'Cancel', 'btn ghost'); cancel.type = 'button'; cancel.addEventListener('click', function () { go(s.returnTo); });
       var create = el('button', 'Create', 'btn'); create.type = 'button';
@@ -394,7 +460,7 @@
         cfgSet(s.collection, list);
         go(s.returnTo, 'Created. Apply the policy to put the change into effect.'); send();
       });
-      act.appendChild(cancel); act.appendChild(create); box.appendChild(act);
+      act.appendChild(cancel); act.appendChild(create); host.appendChild(act);
     }
 
     if (s.type === 'form') {
@@ -402,32 +468,9 @@
       secs.forEach(function (sec) { (sec.fields || []).forEach(function (f) { allFields.push(f); }); });
       var fv = {};
       allFields.forEach(function (f) { fv[f.id] = f.type === 'readonly' && f.value !== undefined ? rp(f.value) : (f.bind ? cfgGet(f.bind) : undefined); });
-      var host = box;
-      if (s.sidePanel) {
-        // Policy-style page: a section list on the left, the settings on the right.
-        var page = el('div', undefined, 'polpage'), side = el('div', undefined, 'side');
-        s.sidePanel.forEach(function (g) {
-          // Section groups open and close when clicked, like the device.
-          if (!(g.label in sideOpen)) sideOpen[g.label] = Boolean(g.open);
-          var isOpen = sideOpen[g.label];
-          var gh = el('button', undefined, 'sgrp'); gh.type = 'button'; gh.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-          gh.appendChild(el('span', isOpen ? '\u25BE' : '\u25B8', 'tog')); gh.appendChild(document.createTextNode(g.label));
-          gh.addEventListener('click', function () { sideOpen[g.label] = !isOpen; renderScreen(); });
-          side.appendChild(gh);
-          if (isOpen) (g.items || []).forEach(function (it) {
-            var sb2 = el('button', it.label, 'sitem'); sb2.type = 'button';
-            if (it.screen === current) sb2.classList.add('on');
-            if (it.screen) sb2.addEventListener('click', function () { go(it.screen); });
-            else { sb2.disabled = true; sb2.title = 'Not part of this lab'; }
-            side.appendChild(sb2);
-          });
-        });
-        host = el('div', undefined, 'main'); page.appendChild(side); page.appendChild(host); box.appendChild(page);
-        if (flash) { var fl = box.querySelector('.flash'); if (fl) host.appendChild(fl); }
-      }
       secs.forEach(function (sec) {
         if (sec.title) host.appendChild(el('h2', sec.title, 'sec'));
-        var rows = formRows(sec.fields || [], fv); if (s.sidePanel) rows.classList.add('plain');
+        var rows = formRows(sec.fields || [], fv); if (panel) rows.classList.add('plain');
         host.appendChild(rows);
       });
       var a2 = el('div', undefined, 'actions');
