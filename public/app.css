@@ -274,3 +274,50 @@ ol.steps li.done .tick{background:#1e3f8f;border-color:#1e3f8f}
 
 .lesson .req{margin:8px 0;padding:9px 11px;background:#fff;border:1px solid #c3c7d1;border-left:4px solid #1e3f8f;border-radius:4px;font-size:13px;line-height:1.4;color:#0a0e1c}
 .lesson .req b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#1e3f8f;margin-bottom:3px}
+
+/* Policy page: header facts, side section list, sectioned settings with joined buttons */
+#althead{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:13px}
+#althead .hbtn{font:inherit;background:#fff;border:1px solid #c3c7d1;border-radius:3px;padding:5px 12px;cursor:pointer;color:#0a0e1c}
+#althead .hbtn.wide{min-width:120px;font-weight:700;cursor:default;color:#2c3140}
+#althead .fact{white-space:nowrap;padding-left:10px}
+#althead .fact.sepd{border-left:1px solid #9aa0ad}
+#althead .fact b{font-weight:700}
+.win .devbar:has(#althead:not([hidden])){background:#dce8f5;border-color:#a9bfd8}
+.polpage{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0;background:#fff;border:1px solid #c3c7d1;min-height:100%}
+.polpage .side{padding:14px 12px;border-right:1px solid #9aa0ad;background:#fff}
+.polpage .side .sgrp{font-weight:700;font-size:15px;margin:10px 0 8px;color:#0a0e1c}
+.polpage .side button{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:#fff;border:0;border-bottom:1px solid #c3c7d1;padding:11px 10px;color:#0a0e1c;cursor:pointer}
+.polpage .side button.on{background:#dce8f5;font-weight:700;border-top:1px solid #a9bfd8}
+.polpage .side button:disabled{cursor:default;color:#0a0e1c}
+.polpage .main{padding:12px 16px 16px;min-width:0}
+.polpage h2.sec{font-size:16px;font-weight:700;margin:22px 0 8px;color:#0a0e1c}
+.form.plain{border:0;border-top:1px solid #c3c7d1;background:#fff}
+.form.plain .row{grid-template-columns:230px minmax(0,1fr);border-bottom:1px solid #c3c7d1}
+.form.plain .row>label,.form.plain .row>.lbl{background:#fff;border-left:0;font-weight:700;font-size:12px;padding:10px 4px}
+.form.plain .row>.ctl{background:#f4f4f2;padding:7px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.form.plain .ro{color:#4b5160;font-size:12px}
+.form.plain .ro.sub{flex-basis:100%}
+.form.plain textarea{font:inherit;width:100%;max-width:340px;border:1px solid #c3c7d1;border-radius:2px;padding:5px}
+.form.plain select{max-width:340px}
+.form.plain .help{flex-basis:100%;margin-top:0}
+.seg{display:inline-flex}
+.seg button{font:inherit;font-size:12px;min-width:108px;padding:5px 10px;background:#fff;border:1px solid #c3c7d1;border-left-width:0;cursor:pointer;color:#0a0e1c}
+.seg button:first-child{border-left-width:1px;border-radius:2px 0 0 2px}
+.seg button:last-child{border-radius:0 2px 2px 0}
+.seg button.on{background:#4a8ccb;border-color:#3b76b0;color:#fff}
+input.num{font:inherit;width:70px;padding:4px 8px;border:1px solid #c3c7d1;border-radius:2px}
+.suffix{font-size:12px;color:#4b5160}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips span{background:#4a8ccb;color:#fff;font-size:12px;padding:3px 8px;border-radius:2px}
+.polpage .actions{margin-top:14px}
+@media (max-width:1000px){.polpage{grid-template-columns:150px minmax(0,1fr)}.form.plain .row{grid-template-columns:130px minmax(0,1fr)}.seg button{min-width:0}}
+/* Items that are not part of the lab are grey */
+.polpage .side button:disabled{color:#9aa0ad}
+.polpage .side .sgrp.off{color:#9aa0ad}
+#althead .hbtn.wide{color:#9aa0ad}
+#althead{overflow:hidden}
+#althead .fact{overflow:hidden;text-overflow:ellipsis;flex-shrink:1;min-width:40px}
+#althead .hbtn{flex-shrink:0}
+.form input.num[type=text]{width:70px;max-width:70px}
+.lesson .foot{gap:8px}
+.lesson .foot .btn{white-space:nowrap}

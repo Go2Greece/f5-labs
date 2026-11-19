@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 11,
+  "rev": 12,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -52,7 +52,7 @@
         {
           "name": "OWASP_Essentials",
           "virtualServer": "vs_web_https",
-          "template": "Rapid Deployment Policy"
+          "template": "Comprehensive"
         }
       ],
       "policyData": {
@@ -68,7 +68,22 @@
               "url": "*"
             }
           ],
-          "disallowedUrls": []
+          "disallowedUrls": [],
+          "description": "",
+          "policyType": "Security",
+          "appLanguage": "Auto detect",
+          "learningMode": "Automatic",
+          "fullyAutomatic": true,
+          "autoApply": "Real Time",
+          "learningSpeed": "Medium",
+          "readinessPeriod": "7",
+          "maxHeaderMode": "Length",
+          "maxHeaderLength": "8192",
+          "maxCookieMode": "Length",
+          "maxCookieLength": "8192",
+          "trustXff": "Disabled",
+          "template": "Fundamental",
+          "virtualServer": "vs_portal_https"
         },
         "OWASP_Essentials": {
           "enforcementMode": "Transparent",
@@ -82,7 +97,22 @@
               "url": "*"
             }
           ],
-          "disallowedUrls": []
+          "disallowedUrls": [],
+          "description": "",
+          "policyType": "Security",
+          "appLanguage": "Auto detect",
+          "learningMode": "Automatic",
+          "fullyAutomatic": true,
+          "autoApply": "Real Time",
+          "learningSpeed": "Medium",
+          "readinessPeriod": "7",
+          "maxHeaderMode": "Length",
+          "maxHeaderLength": "8192",
+          "maxCookieMode": "Length",
+          "maxCookieLength": "8192",
+          "trustXff": "Disabled",
+          "template": "Comprehensive",
+          "virtualServer": "vs_web_https"
         }
       }
     }
@@ -474,25 +504,231 @@
     "policyGeneral": {
       "type": "form",
       "returnTo": "policies",
-      "pathText": "Security » Application Security : Security Policies : Policies List » General Settings",
-      "title": "General Settings",
-      "fields": [
+      "pathText": "Security » Application Security : Security Policies : Policies List » $policy",
+      "title": "",
+      "header": {
+        "back": "policies",
+        "buttons": [
+          "Export"
+        ],
+        "facts": [
+          {
+            "label": "Enforcement Mode",
+            "bind": "policyData.$policy.enforcementMode"
+          },
+          {
+            "label": "Learning Mode",
+            "text": "Fully Automatic (Real Time Auto-Apply)"
+          }
+        ]
+      },
+      "sidePanel": [
         {
-          "id": "name",
-          "label": "Policy Name",
-          "type": "readonly",
-          "value": "$policy"
+          "label": "Policy Configuration",
+          "open": true,
+          "items": [
+            {
+              "label": "General Settings",
+              "screen": "policyGeneral"
+            },
+            {
+              "label": "Audit Log"
+            },
+            {
+              "label": "Attack Signatures"
+            },
+            {
+              "label": "Threat Campaigns"
+            },
+            {
+              "label": "IP Intelligence"
+            },
+            {
+              "label": "IP Address Exceptions"
+            },
+            {
+              "label": "Sessions and Logins"
+            },
+            {
+              "label": "Response and Blocking Pages"
+            }
+          ]
         },
         {
-          "id": "enforcementMode",
-          "label": "Enforcement Mode",
-          "type": "radio",
-          "options": [
-            "Transparent",
-            "Blocking"
-          ],
-          "bind": "policyData.$policy.enforcementMode",
-          "help": "Transparent logs violations without blocking. Blocking rejects requests that trigger a violation set to block."
+          "label": "HTTP Message Protection",
+          "open": false
+        },
+        {
+          "label": "Advanced Protection",
+          "open": false
+        }
+      ],
+      "sections": [
+        {
+          "fields": [
+            {
+              "id": "name",
+              "label": "Policy Name",
+              "type": "readonly",
+              "value": "$policy",
+              "sub": "Partition / Path: Common"
+            },
+            {
+              "id": "description",
+              "label": "Description",
+              "type": "textarea",
+              "bind": "policyData.$policy.description"
+            },
+            {
+              "id": "policyType",
+              "label": "Policy Type",
+              "type": "readonly",
+              "bind": "policyData.$policy.policyType"
+            },
+            {
+              "id": "template",
+              "label": "Policy Template",
+              "type": "readonly",
+              "bind": "policyData.$policy.template",
+              "linkText": "Learn More"
+            },
+            {
+              "id": "appLanguage",
+              "label": "Application Language",
+              "type": "select",
+              "options": [
+                "Auto detect",
+                "Unicode (utf-8)",
+                "Western European (iso-8859-1)"
+              ],
+              "bind": "policyData.$policy.appLanguage"
+            },
+            {
+              "id": "virtualServer",
+              "label": "Virtual Server",
+              "type": "readonly",
+              "bind": "policyData.$policy.virtualServer"
+            }
+          ]
+        },
+        {
+          "title": "Learning and Blocking",
+          "fields": [
+            {
+              "id": "enforcementMode",
+              "label": "Enforcement Mode",
+              "type": "segmented",
+              "options": [
+                "Transparent",
+                "Blocking"
+              ],
+              "bind": "policyData.$policy.enforcementMode"
+            },
+            {
+              "id": "learningMode",
+              "label": "Policy Building Learning Mode",
+              "type": "segmented",
+              "options": [
+                "Automatic",
+                "Manual",
+                "Disabled"
+              ],
+              "bind": "policyData.$policy.learningMode"
+            },
+            {
+              "id": "fullyAutomatic",
+              "label": "Fully Automatic",
+              "type": "checkbox",
+              "text": "Fully Automatic",
+              "bind": "policyData.$policy.fullyAutomatic"
+            },
+            {
+              "id": "autoApply",
+              "label": "Auto-Apply Policy",
+              "type": "segmented",
+              "options": [
+                "Disabled",
+                "Real Time",
+                "Scheduled"
+              ],
+              "bind": "policyData.$policy.autoApply"
+            },
+            {
+              "id": "learningSpeed",
+              "label": "Policy Builder Learning Speed",
+              "type": "segmented",
+              "options": [
+                "Fast",
+                "Medium",
+                "Slow"
+              ],
+              "bind": "policyData.$policy.learningSpeed"
+            },
+            {
+              "id": "readinessPeriod",
+              "label": "Enforcement Readiness Period",
+              "type": "number",
+              "suffix": "days",
+              "bind": "policyData.$policy.readinessPeriod"
+            }
+          ]
+        },
+        {
+          "title": "Basic HTTP Message Settings",
+          "fields": [
+            {
+              "id": "maxHeaderMode",
+              "label": "Maximum HTTP Header Length",
+              "type": "segmented",
+              "options": [
+                "Any",
+                "Length"
+              ],
+              "bind": "policyData.$policy.maxHeaderMode",
+              "withNumber": {
+                "bind": "policyData.$policy.maxHeaderLength",
+                "suffix": "bytes"
+              }
+            },
+            {
+              "id": "maxCookieMode",
+              "label": "Maximum Cookie Header Length",
+              "type": "segmented",
+              "options": [
+                "Any",
+                "Length"
+              ],
+              "bind": "policyData.$policy.maxCookieMode",
+              "withNumber": {
+                "bind": "policyData.$policy.maxCookieLength",
+                "suffix": "bytes"
+              }
+            },
+            {
+              "id": "statusCodes",
+              "label": "Allowed Response Status Codes",
+              "type": "chips",
+              "values": [
+                "400",
+                "401",
+                "404",
+                "407",
+                "417",
+                "503"
+              ],
+              "note": "Note: Response codes 200 through 399 are automatically allowed by the system"
+            },
+            {
+              "id": "trustXff",
+              "label": "Trust XFF Header",
+              "type": "segmented",
+              "options": [
+                "Enabled",
+                "Disabled"
+              ],
+              "bind": "policyData.$policy.trustXff"
+            }
+          ]
         }
       ]
     }
@@ -580,7 +816,7 @@
   "steps": [
     {
       "id": "s0",
-      "text": "Go to Security › Application Security › Security Policies › Policies List and click OWASP_Essentials, or choose it in the policy selector.",
+      "text": "Go to Security › Application Security › Security Policies › Policies List and click OWASP_Essentials.",
       "check": {
         "path": "currentPolicy",
         "equals": "OWASP_Essentials"
@@ -616,7 +852,7 @@
     },
     {
       "id": "s3",
-      "text": "Set Enforcement Mode to Blocking for OWASP_Essentials and click Save.",
+      "text": "Open the policy's General Settings (Policies List › OWASP_Essentials). Under Learning and Blocking, set Enforcement Mode to Blocking and click Save.",
       "check": {
         "path": "config.policyData.OWASP_Essentials.enforcementMode",
         "equals": "Blocking"

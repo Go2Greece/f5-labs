@@ -193,6 +193,20 @@
     if (isNew) send();
   }
 
+  // The bar above the screen. Normally the policy selector; a screen can replace it with
+  // its own header (a back button and read-only facts about the open record).
+  function renderHeader(s) {
+    var normal = $('devinfo'), alt = $('althead');
+    if (!s.header) { normal.hidden = false; alt.hidden = true; return; }
+    normal.hidden = true; alt.hidden = false; alt.textContent = '';
+    var back = el('button', '\u2190', 'hbtn'); back.type = 'button'; back.setAttribute('aria-label', 'Back');
+    back.addEventListener('click', function () { go(s.header.back || s.returnTo); }); alt.appendChild(back);
+    (s.header.buttons || []).forEach(function (t) { var hb = el('button', t + '  \u25BE', 'hbtn wide'); hb.type = 'button'; hb.disabled = true; hb.title = 'Not part of this lab'; alt.appendChild(hb); });
+    (s.header.facts || []).forEach(function (f, k) {
+      var sp = el('span', undefined, 'fact' + (k ? ' sepd' : '')); sp.appendChild(el('b', f.label + ': ')); sp.appendChild(document.createTextNode(f.bind ? cfgGet(f.bind) : rp(f.text || ''))); alt.appendChild(sp);
+    });
+  }
+
   function renderBar() {
     $('pending').hidden = !dirty();
     $('apply').disabled = !dirty();
@@ -215,10 +229,41 @@
         lb.appendChild(r); lb.appendChild(document.createTextNode(o)); wrap.appendChild(lb);
       });
     } else if (f.type === 'readonly') {
-      wrap.appendChild(el('span', value == null ? '' : String(value)));
+      wrap.appendChild(el('span', value == null ? '' : String(value), 'ro'));
+      if (f.linkText) { wrap.appendChild(document.createTextNode(' ')); wrap.appendChild(el('span', f.linkText, 'linkish')); }
+      if (f.sub) wrap.appendChild(el('div', rp(f.sub), 'ro sub'));
+    } else if (f.type === 'segmented') {
+      // A row of joined buttons where exactly one is selected.
+      var seg = el('div', undefined, 'seg'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', f.label);
+      var cur = value;
+      (f.options || []).forEach(function (o) {
+        var sb = el('button', o); sb.type = 'button'; sb.setAttribute('role', 'radio');
+        function paint() { sb.className = (o === cur ? 'on' : ''); sb.setAttribute('aria-checked', o === cur ? 'true' : 'false'); }
+        paint();
+        sb.addEventListener('click', function () { cur = o; onChange(o); var all = seg.querySelectorAll('button'); for (var i = 0; i < all.length; i++) { all[i].className = all[i].textContent === o ? 'on' : ''; all[i].setAttribute('aria-checked', all[i].textContent === o ? 'true' : 'false'); } });
+        seg.appendChild(sb);
+      });
+      wrap.appendChild(seg);
+      if (f.withNumber) {
+        var ni = el('input'); ni.type = 'text'; ni.className = 'num'; ni.value = cfgGet(f.withNumber.bind); ni.setAttribute('aria-label', f.label + ' value');
+        ni.addEventListener('input', function () { f.withNumber._v = ni.value; }); f.withNumber._v = ni.value;
+        wrap.appendChild(ni); if (f.withNumber.suffix) wrap.appendChild(el('span', f.withNumber.suffix, 'suffix'));
+      }
+    } else if (f.type === 'textarea') {
+      var ta = el('textarea'); ta.id = 'f_' + f.id; ta.value = value == null ? '' : value; ta.rows = 2; ta.setAttribute('aria-label', f.label);
+      ta.addEventListener('input', function () { onChange(ta.value); }); wrap.appendChild(ta);
+    } else if (f.type === 'number') {
+      var nu = el('input'); nu.type = 'text'; nu.className = 'num'; nu.id = 'f_' + f.id; nu.value = value == null ? '' : value; nu.setAttribute('aria-label', f.label);
+      nu.addEventListener('input', function () { onChange(nu.value); }); wrap.appendChild(nu);
+      if (f.suffix) wrap.appendChild(el('span', f.suffix, 'suffix'));
+    } else if (f.type === 'chips') {
+      var cw = el('div', undefined, 'chips'); (f.values || []).forEach(function (v) { cw.appendChild(el('span', v + ' \u00D7')); }); wrap.appendChild(cw);
+      if (f.note) wrap.appendChild(el('div', f.note, 'help'));
     } else if (f.type === 'checkbox') {
       var c = el('input'); c.type = 'checkbox'; c.id = 'f_' + f.id; c.checked = Boolean(value);
-      c.addEventListener('change', function () { onChange(c.checked); }); wrap.appendChild(c);
+      c.addEventListener('change', function () { onChange(c.checked); });
+      if (f.text) { var cl = el('label', undefined, 'radio'); cl.appendChild(c); cl.appendChild(document.createTextNode(f.text)); wrap.appendChild(cl); }
+      else wrap.appendChild(c);
     } else {
       var inp = el('input'); inp.type = 'text'; inp.id = 'f_' + f.id; inp.value = value == null ? '' : value; inp.autocomplete = 'off'; inp.spellcheck = false;
       if (f.placeholder) inp.placeholder = f.placeholder;
@@ -247,7 +292,8 @@
     var form = el('div', undefined, 'form');
     fields.forEach(function (f) {
       var row = el('div', undefined, 'row');
-      var lb = el(f.type === 'radio' ? 'div' : 'label', f.label, f.type === 'radio' ? 'lbl' : ''); if (f.type !== 'radio') lb.htmlFor = 'f_' + f.id;
+      var plainLbl = f.type === 'radio' || f.type === 'segmented' || f.type === 'readonly' || f.type === 'chips' || f.text;
+      var lb = el(plainLbl ? 'div' : 'label', f.text ? '' : f.label, plainLbl ? 'lbl' : ''); if (!plainLbl) lb.htmlFor = 'f_' + f.id;
       row.appendChild(lb);
       row.appendChild(fieldControl(f, values[f.id], function (v) { values[f.id] = v; }));
       form.appendChild(row);
@@ -257,7 +303,7 @@
 
   function renderScreen() {
     var s = lab.screens[current], box = $('screen'); box.textContent = '';
-    var pb = $('pathbar'), ptxt = s.pathText || (s.path || []).join(' : '), parts = ptxt.split(' \u00BB ');
+    var pb = $('pathbar'), ptxt = rp(s.pathText || (s.path || []).join(' : ')), parts = ptxt.split(' \u00BB ');
     pb.textContent = '';
     parts.forEach(function (part, k) {
       if (k) pb.appendChild(el('span', ' \u00BB ', 'sep'));
@@ -272,7 +318,8 @@
       tabs.appendChild(tbn);
     });
     if (flash) box.appendChild(el('div', flash, 'flash'));
-    var titleRow = el('div', undefined, 'titlerow'); titleRow.appendChild(el('h1', s.title)); box.appendChild(titleRow);
+    var titleRow = el('div', undefined, 'titlerow'); titleRow.appendChild(el('h1', s.title || '')); if (s.title || s.createScreen) box.appendChild(titleRow);
+    renderHeader(s);
 
     if (s.type === 'list') {
       var rows = cfgGet(s.collection) || [];
@@ -350,15 +397,42 @@
     }
 
     if (s.type === 'form') {
-      var fv = {}; s.fields.forEach(function (f) { fv[f.id] = f.type === 'readonly' ? (f.value !== undefined ? rp(f.value) : cfgGet(f.bind)) : cfgGet(f.bind); });
-      box.appendChild(formRows(s.fields, fv));
+      var secs = s.sections || [{ fields: s.fields || [] }], allFields = [];
+      secs.forEach(function (sec) { (sec.fields || []).forEach(function (f) { allFields.push(f); }); });
+      var fv = {};
+      allFields.forEach(function (f) { fv[f.id] = f.type === 'readonly' && f.value !== undefined ? rp(f.value) : (f.bind ? cfgGet(f.bind) : undefined); });
+      var host = box;
+      if (s.sidePanel) {
+        // Policy-style page: a section list on the left, the settings on the right.
+        var page = el('div', undefined, 'polpage'), side = el('div', undefined, 'side');
+        s.sidePanel.forEach(function (g) {
+          side.appendChild(el('div', (g.open ? '\u25BE ' : '\u25B8 ') + g.label, 'sgrp' + (g.open ? '' : ' off')));
+          if (g.open) (g.items || []).forEach(function (it) {
+            var sb2 = el('button', it.label); sb2.type = 'button';
+            if (it.screen === current) sb2.className = 'on';
+            if (it.screen) sb2.addEventListener('click', function () { go(it.screen); });
+            else { sb2.disabled = true; sb2.title = 'Not part of this lab'; }
+            side.appendChild(sb2);
+          });
+        });
+        host = el('div', undefined, 'main'); page.appendChild(side); page.appendChild(host); box.appendChild(page);
+        if (flash) { var fl = box.querySelector('.flash'); if (fl) host.appendChild(fl); }
+      }
+      secs.forEach(function (sec) {
+        if (sec.title) host.appendChild(el('h2', sec.title, 'sec'));
+        var rows = formRows(sec.fields || [], fv); if (s.sidePanel) rows.classList.add('plain');
+        host.appendChild(rows);
+      });
       var a2 = el('div', undefined, 'actions');
       var save = el('button', 'Save', 'btn'); save.type = 'button';
       save.addEventListener('click', function () {
-        s.fields.forEach(function (f) { if (f.type !== 'readonly') cfgSet(f.bind, fv[f.id]); });
+        allFields.forEach(function (f) {
+          if (f.type !== 'readonly' && f.type !== 'chips' && f.bind) cfgSet(f.bind, fv[f.id]);
+          if (f.withNumber && f.withNumber.bind) cfgSet(f.withNumber.bind, f.withNumber._v);
+        });
         go(current, 'Saved. Apply the policy to put the change into effect.'); send();
       });
-      a2.appendChild(save); box.appendChild(a2);
+      a2.appendChild(save); host.appendChild(a2);
     }
   }
 
