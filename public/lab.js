@@ -423,3 +423,4 @@
     })
     .catch(function (e) { $('screen').textContent = 'Could not load the lab: ' + e; });
 })();
+(function () { var b = document.getElementById('build'); if (b && b.getAttribute('data-build')) b.textContent = '· build ' + b.getAttribute('data-build'); })();
