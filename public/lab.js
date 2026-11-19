@@ -3,6 +3,7 @@
 // the server decides which steps are done.
 (function () {
   var labId = new URLSearchParams(location.search).get('id') || '';
+  var sideOpen = {};
   var lab = null, state = null, steps = {}, current = null, flash = '', lastTest = null, busy = 0;
 
   function $(id) { return document.getElementById(id); }
@@ -406,10 +407,16 @@
         // Policy-style page: a section list on the left, the settings on the right.
         var page = el('div', undefined, 'polpage'), side = el('div', undefined, 'side');
         s.sidePanel.forEach(function (g) {
-          side.appendChild(el('div', (g.open ? '\u25BE ' : '\u25B8 ') + g.label, 'sgrp' + (g.open ? '' : ' off')));
-          if (g.open) (g.items || []).forEach(function (it) {
-            var sb2 = el('button', it.label); sb2.type = 'button';
-            if (it.screen === current) sb2.className = 'on';
+          // Section groups open and close when clicked, like the device.
+          if (!(g.label in sideOpen)) sideOpen[g.label] = Boolean(g.open);
+          var isOpen = sideOpen[g.label];
+          var gh = el('button', undefined, 'sgrp'); gh.type = 'button'; gh.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          gh.appendChild(el('span', isOpen ? '\u25BE' : '\u25B8', 'tog')); gh.appendChild(document.createTextNode(g.label));
+          gh.addEventListener('click', function () { sideOpen[g.label] = !isOpen; renderScreen(); });
+          side.appendChild(gh);
+          if (isOpen) (g.items || []).forEach(function (it) {
+            var sb2 = el('button', it.label, 'sitem'); sb2.type = 'button';
+            if (it.screen === current) sb2.classList.add('on');
             if (it.screen) sb2.addEventListener('click', function () { go(it.screen); });
             else { sb2.disabled = true; sb2.title = 'Not part of this lab'; }
             side.appendChild(sb2);

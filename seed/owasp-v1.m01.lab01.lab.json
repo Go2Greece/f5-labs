@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 12,
+  "rev": 13,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -556,11 +556,26 @@
         },
         {
           "label": "HTTP Message Protection",
-          "open": false
+          "open": false,
+          "items": [
+            {
+              "label": "File Types"
+            },
+            {
+              "label": "Headers"
+            },
+            {
+              "label": "Cookies"
+            },
+            {
+              "label": "Microservices"
+            }
+          ]
         },
         {
           "label": "Advanced Protection",
-          "open": false
+          "open": false,
+          "items": []
         }
       ],
       "sections": [
