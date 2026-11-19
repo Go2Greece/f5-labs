@@ -4,7 +4,7 @@
 (function () {
   var labId = new URLSearchParams(location.search).get('id') || '';
   var sideOpen = {}, sideNav = null;
-  var lab = null, state = null, steps = {}, current = null, flash = '', lastTest = null, busy = 0;
+  var lab = null, state = null, steps = {}, current = null, flash = '', lastTests = {}, busy = 0;
 
   function $(id) { return document.getElementById(id); }
   function el(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined && text !== null) e.textContent = text; if (cls) e.className = cls; return e; }
@@ -40,10 +40,10 @@
         if (extra && (extra.reset || extra.testId)) state = d.state;
         else if (d.state && d.state.tests) state.tests = d.state.tests;
         steps = d.steps || {};
-        if (d.test) lastTest = d.test;
-        else if (lastTest && d.stale && d.stale.indexOf(lastTest.id) > -1) {
-          lastTest = { id: lastTest.id, result: 'stale', message: 'The configuration has changed since this test was sent. Send the request again to see the result now.' };
-        }
+        if (d.test) lastTests[d.test.id] = d.test;
+        (d.stale || []).forEach(function (id) {
+          if (lastTests[id] && !(d.test && d.test.id === id)) lastTests[id] = { id: id, result: 'stale', message: 'The configuration has changed since this test was sent. Send the request again to see the result now.' };
+        });
         $('saved').textContent = busy ? 'Saving...' : 'Progress saved';
         renderLesson(d.complete);
         return d;
@@ -80,7 +80,8 @@
       var b = el('button', t.label, 'btn small'); b.type = 'button';
       b.addEventListener('click', function () { b.disabled = true; send({ testId: t.id }).then(function () { b.disabled = false; }); });
       box.appendChild(b);
-      if (lastTest && lastTest.id === t.id) {
+      var lastTest = lastTests[t.id];
+      if (lastTest) {
         // Text between ** and ** in a lab message is shown in bold.
         var res = el('div', undefined, 'result ' + lastTest.result);
         String(lastTest.message).split('**').forEach(function (part, k) { if (part) res.appendChild(k % 2 ? el('b', part) : document.createTextNode(part)); });
@@ -302,6 +303,8 @@
     return form;
   }
 
+  function recMatches(r, cond) { return !cond || Object.keys(cond).every(function (k) { return String(r[k]) === String(cond[k]); }); }
+
   function stamp() {
     var n = new Date(), p2 = function (x) { return (x < 10 ? '0' : '') + x; };
     return n.getFullYear() + '-' + p2(n.getMonth() + 1) + '-' + p2(n.getDate()) + ' ' + p2(n.getHours()) + ':' + p2(n.getMinutes()) + ':' + p2(n.getSeconds());
@@ -309,9 +312,9 @@
 
   // A pop-up that creates or edits one record of a list, as the device does for file types.
   // index -1 means a new record. Everything shown comes from the screen's "editor" definition.
-  function openEditor(s, index) {
+  function openEditor(s, index, preset) {
     var ed = s.editor, rowsNow = cfgGet(s.collection) || [], isNew = index < 0;
-    var rec = isNew ? clone(ed.defaults || {}) : clone(rowsNow[index]);
+    var rec = isNew ? Object.assign(clone(ed.defaults || {}), clone(preset || {})) : clone(rowsNow[index]);
     var prev = document.querySelector('.modalwrap'); if (prev) prev.parentNode.removeChild(prev);
     var wrap = el('div', undefined, 'modalwrap'), dlg = el('div', undefined, 'modal');
     dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true'); dlg.setAttribute('aria-label', ed.title);
@@ -329,7 +332,10 @@
       });
       return g;
     }
-    ed.fields.forEach(function (f) {
+    var titleFor = (ed.titles || []).filter(function (x) { return recMatches(rec, x.when); })[0];
+    if (titleFor) { dlg.querySelector('.mtitle').textContent = titleFor.title; dlg.setAttribute('aria-label', titleFor.title); }
+    var shown = ed.fields.filter(function (f) { return recMatches(rec, f.showWhen); });
+    shown.forEach(function (f) {
       var row = el('div', undefined, 'row'), lb = el('div', f.label, 'lbl'), ctl = el('div', undefined, 'ctl');
       if (f.required) lb.appendChild(el('span', ' *', 'req'));
       if (f.type === 'key') {
@@ -373,7 +379,7 @@
     cancel.addEventListener('click', close);
     ok.addEventListener('click', function () {
       var msg = '';
-      ed.fields.forEach(function (f) {
+      shown.forEach(function (f) {
         if (msg) return;
         if (f.type === 'key') {
           var k = String(rec[f.field] || '').trim(); rec[f.field] = k;
@@ -388,7 +394,7 @@
       });
       if (msg) { err.textContent = msg; err.hidden = false; return; }
       // A new record that starts with a timed setting on gets its timestamps now.
-      ed.fields.forEach(function (f) {
+      shown.forEach(function (f) {
         if (f.stampOn && rec[f.field] === f.stampOn.value) f.stampOn.fields.forEach(function (k) { if (!rec[k]) rec[k] = stamp(); });
       });
       var list = clone(rowsNow);
@@ -452,12 +458,25 @@
       var mrows = cfgGet(s.collection) || [], msel = {}, mboxes = [];
       var top = el('div', undefined, 'mtop'), sum = el('div', undefined, 'msum'), acts = el('div', undefined, 'macts');
       (s.summary || []).forEach(function (it) {
-        var n = it.countWhere ? mrows.filter(function (r) { return Object.keys(it.countWhere).every(function (k) { return String(r[k]) === String(it.countWhere[k]); }); }).length : mrows.length;
+        var n = mrows.filter(function (r) { return recMatches(r, it.countWhere); }).length;
         var sp = el('span'); sp.appendChild(el('b', String(it.bold || '').replace('{n}', n))); sp.appendChild(document.createTextNode(' ' + (it.text || ''))); sum.appendChild(sp);
       });
       (s.buttons || []).forEach(function (bt) {
         var b = el('button', bt.label + (bt.menu ? ' \u25BE' : ''), 'mbtn ' + (bt.kind || 'plain')); b.type = 'button';
         if (bt.screen) b.addEventListener('click', function () { go(bt.screen); });
+        else if (bt.op === 'create' && s.editor && Array.isArray(bt.menu)) b.addEventListener('click', function (ev) {
+          // A Create button that first asks which kind of record to make.
+          ev.stopPropagation();
+          var old = document.querySelector('.dropmenu'); if (old) { old.parentNode.removeChild(old); return; }
+          var dm = el('div', undefined, 'dropmenu'), r = b.getBoundingClientRect();
+          bt.menu.forEach(function (mi) {
+            var mb = el('button', mi.label); mb.type = 'button';
+            mb.addEventListener('click', function () { dm.parentNode.removeChild(dm); openEditor(s, -1, mi.defaults); });
+            dm.appendChild(mb);
+          });
+          document.body.appendChild(dm); dm.style.top = r.bottom + 'px'; dm.style.left = Math.max(4, Math.min(r.left, window.innerWidth - dm.offsetWidth - 4)) + 'px';
+          setTimeout(function () { document.addEventListener('click', function once() { if (dm.parentNode) dm.parentNode.removeChild(dm); document.removeEventListener('click', once); }); }, 0);
+        });
         else if (bt.op === 'create' && s.editor) b.addEventListener('click', function () { openEditor(s, -1); });
         else if (bt.op === 'delete') b.addEventListener('click', function () {
           var picked = mrows.filter(function (_, i) { return msel[i]; });
@@ -470,10 +489,10 @@
           // Sets fields on every ticked row, for example Enforce turns staging off.
           var any = false, list = clone(mrows);
           list.forEach(function (r, i) {
-            if (!msel[i]) return; any = true;
+            if (!msel[i] || !recMatches(r, bt.onlyWhere)) return; any = true;
             Object.keys(bt.set || {}).forEach(function (k) { r[k] = bt.set[k] === '$now' ? stamp() : bt.set[k]; });
           });
-          if (!any) { go(current, 'Select at least one entry first.'); return; }
+          if (!any) { go(current, bt.noneText || 'Select at least one entry first.'); return; }
           cfgSet(s.collection, list); go(current, (bt.doneText || 'Updated.') + ' Apply the policy to put the change into effect.'); send();
         });
         else { b.disabled = true; b.title = 'Not part of this lab'; }
@@ -494,6 +513,7 @@
         s.columns.forEach(function (c) {
           var td = el('td'), v = r[c.field];
           if (c.anyWhen && r[c.anyWhen] === 'Any') v = 'Any';
+          if (c.blankWhen && recMatches(r, c.blankWhen)) v = '';
           if (c.map && c.map[v] !== undefined) v = c.map[v];
           if (c.type === 'check') td.appendChild(el('span', v ? '\u2713' : '', 'tickmark'));
           else if (c.opens === 'editor' && s.editor) {
@@ -657,7 +677,7 @@
       applyNow(); flash = 'Policy applied.'; renderScreen(); renderBar(); send();
     });
     $('reset').addEventListener('click', function () {
-      lastTest = null;
+      lastTests = {};
       send({ reset: true }).then(function () { current = null; openTop = {}; go(lab.startScreen || Object.keys(lab.screens)[0]); });
     });
     $('nav').addEventListener('mouseleave', leaveFlys); $('nav').addEventListener('mouseenter', keepFlys);

@@ -371,3 +371,9 @@ table.mgrid td .linkish{white-space:nowrap}
 .modal input.num:disabled{background:#f4f4f2;color:#9aa0ad}
 .modal .err{margin-top:10px;color:#8A1F1F;font-size:13px}
 @media (max-width:1000px){.modal .mtitle{font-size:17px;padding:10px 14px}.modal .mbody{padding:10px 14px}.modal .form.plain .row{grid-template-columns:150px minmax(0,1fr)}.modal .seg button{min-width:0}}
+
+.dropmenu{position:fixed;z-index:60;background:#fff;border:1px solid #9aa0ad;box-shadow:2px 3px 10px rgba(0,0,0,.25);min-width:190px;font-family:FreeSans,Arial,Helvetica,sans-serif}
+.dropmenu button{display:block;width:100%;text-align:left;font:inherit;font-size:13px;background:#fff;border:0;border-bottom:1px solid #e1e1de;padding:9px 12px;cursor:pointer;color:#0a0e1c}
+.dropmenu button:last-child{border-bottom:0}
+.dropmenu button:hover{background:#dce8f5}
+.tests .tcase{margin-bottom:12px}

@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 15,
+  "rev": 16,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -846,7 +846,8 @@
           "bold": "{n} Allowed File Types",
           "text": "ready to be enforced",
           "countWhere": {
-            "staging": "Enabled"
+            "staging": "Enabled",
+            "allowed": true
           }
         },
         {
@@ -858,7 +859,21 @@
         {
           "label": "Create",
           "kind": "primary",
-          "menu": true,
+          "menu": [
+            {
+              "label": "Allowed File Type",
+              "defaults": {
+                "allowed": true
+              }
+            },
+            {
+              "label": "Disallowed File Type",
+              "defaults": {
+                "allowed": false,
+                "staging": "Disabled"
+              }
+            }
+          ],
           "op": "create"
         },
         {
@@ -868,7 +883,11 @@
           "set": {
             "staging": "Disabled"
           },
-          "doneText": "Enforced."
+          "doneText": "Enforced.",
+          "onlyWhere": {
+            "allowed": true
+          },
+          "noneText": "Select at least one allowed file type first."
         },
         {
           "label": "Stage",
@@ -878,7 +897,11 @@
             "stagingSince": "$now",
             "lastStagingEvent": "$now"
           },
-          "doneText": "Staged."
+          "doneText": "Staged.",
+          "onlyWhere": {
+            "allowed": true
+          },
+          "noneText": "Select at least one allowed file type first."
         },
         {
           "label": "Delete",
@@ -900,22 +923,34 @@
         {
           "field": "urlLength",
           "label": "URL Length",
-          "anyWhen": "urlMode"
+          "anyWhen": "urlMode",
+          "blankWhen": {
+            "allowed": false
+          }
         },
         {
           "field": "requestLength",
           "label": "Request Length",
-          "anyWhen": "requestMode"
+          "anyWhen": "requestMode",
+          "blankWhen": {
+            "allowed": false
+          }
         },
         {
           "field": "queryStringLength",
           "label": "Query String Length",
-          "anyWhen": "queryStringMode"
+          "anyWhen": "queryStringMode",
+          "blankWhen": {
+            "allowed": false
+          }
         },
         {
           "field": "postDataLength",
           "label": "POST Data Length",
-          "anyWhen": "postDataMode"
+          "anyWhen": "postDataMode",
+          "blankWhen": {
+            "allowed": false
+          }
         },
         {
           "field": "staging",
@@ -923,6 +958,9 @@
           "map": {
             "Enabled": "Staging",
             "Disabled": "Enforced"
+          },
+          "blankWhen": {
+            "allowed": false
           }
         }
       ],
@@ -976,37 +1014,63 @@
                 "stagingSince",
                 "lastStagingEvent"
               ]
+            },
+            "showWhen": {
+              "allowed": true
             }
           },
           {
             "type": "note",
             "label": "Response Signatures",
             "text": "Ignore",
-            "warning": "Edit this configuration in Learning and Blocking Settings"
+            "warning": "Edit this configuration in Learning and Blocking Settings",
+            "showWhen": {
+              "allowed": true
+            }
           },
           {
             "type": "length",
             "field": "urlLength",
             "modeField": "urlMode",
-            "label": "URL Length"
+            "label": "URL Length",
+            "showWhen": {
+              "allowed": true
+            }
           },
           {
             "type": "length",
             "field": "requestLength",
             "modeField": "requestMode",
-            "label": "Request Length"
+            "label": "Request Length",
+            "showWhen": {
+              "allowed": true
+            }
           },
           {
             "type": "length",
             "field": "queryStringLength",
             "modeField": "queryStringMode",
-            "label": "Query String Length"
+            "label": "Query String Length",
+            "showWhen": {
+              "allowed": true
+            }
           },
           {
             "type": "length",
             "field": "postDataLength",
             "modeField": "postDataMode",
-            "label": "POST Data Length"
+            "label": "POST Data Length",
+            "showWhen": {
+              "allowed": true
+            }
+          }
+        ],
+        "titles": [
+          {
+            "when": {
+              "allowed": false
+            },
+            "title": "Disallowed File Type Properties"
           }
         ]
       }

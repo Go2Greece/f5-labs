@@ -10,6 +10,7 @@
 //   { path: "a.b", some: { f: v, ... } }     array at path has an object matching every field
 //   { path: "a.b", none: { f: v, ... } }     array at path has no object matching
 //   { path: "a.b", truthy: true }
+//   { path: "a.b", matches: { field, value, where, wildcardWhen } }   see below
 
 export function getPath(obj, path) {
   let cur = obj;
@@ -35,6 +36,11 @@ function matches(item, pattern) {
   return Object.keys(pattern).every((k) => same(item[k], pattern[k]));
 }
 
+function globToRegExp(glob) {
+  const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".");
+  return new RegExp("^" + escaped + "$");
+}
+
 export function evalRule(rule, state) {
   if (!rule || typeof rule !== "object") return false;
   if (Array.isArray(rule.all)) return rule.all.every((r) => evalRule(r, state));
@@ -47,6 +53,23 @@ export function evalRule(rule, state) {
   if ("includes" in rule) return Array.isArray(value) && value.some((v) => same(v, rule.includes));
   if (rule.some) return Array.isArray(value) && value.some((item) => matches(item, rule.some));
   if (rule.none) return !Array.isArray(value) || !value.some((item) => matches(item, rule.none));
+  // { path, matches: { field, value, where?, wildcardWhen? } }
+  // True when a record in the array at path covers the given value. A record whose fields match
+  // wildcardWhen is treated as a pattern (* any run of characters, ? one character); any other
+  // record must equal the value exactly. "where" narrows which records are considered.
+  if (rule.matches) {
+    const m = rule.matches;
+    if (!Array.isArray(value)) return false;
+    return value.some((item) => {
+      if (!item || typeof item !== "object") return false;
+      if (m.where && !matches(item, m.where)) return false;
+      const pattern = norm(item[m.field]);
+      const target = norm(m.value);
+      if (typeof pattern !== "string") return false;
+      if (m.wildcardWhen && matches(item, m.wildcardWhen)) return globToRegExp(pattern).test(target);
+      return pattern === target;
+    });
+  }
   if (rule.truthy) return Boolean(value);
   return false;
 }

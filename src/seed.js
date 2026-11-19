@@ -2,9 +2,10 @@
 // Seeding only inserts records that are missing, so a published version is never changed.
 import course1 from "../seed/owasp-v1.course.json";
 import lab1 from "../seed/owasp-v1.m01.lab01.lab.json";
+import lab2 from "../seed/owasp-v1.m01.lab02.lab.json";
 
 export const SEED_COURSES = [course1];
-export const SEED_LABS = [lab1];
+export const SEED_LABS = [lab1, lab2];
 
 export async function seed(db, replace) {
   const report = { courses: [], labs: [] };

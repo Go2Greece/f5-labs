@@ -1,0 +1,1440 @@
+{
+  "_id": "owasp-v1.m01.lab02",
+  "rev": 1,
+  "draft": true,
+  "courseId": "owasp-v1",
+  "moduleId": "m01",
+  "order": 2,
+  "title": "Block exposed backups with a disallowed URL and a disallowed file type",
+  "requirement": "The application developer has told you they accidentally left backups of the SQL tables inside the application, in the /backups folder. There are other files in that folder too, but nobody can remember what they are. The application runs over HTTPS on port 443 behind the OWASP_Essentials policy, which is already in Blocking mode. Block everything in /backups, and block .sql files wherever they are in the application.",
+  "intro": "Blocking the folder protects the files nobody can remember. Blocking the file type protects SQL files the developer may have left somewhere else. Do both, apply the policy, then prove it with the three test requests.",
+  "device": {
+    "hostname": "bigip1.lab.approxee.com",
+    "ip": "192.168.2.12",
+    "user": "admin",
+    "role": "Administrator",
+    "partition": "Common",
+    "banner": {
+      "text": "bigip1.lab.approxee.com - ApplicationTier",
+      "color": "#e8901a"
+    },
+    "learningMode": "Fully Automatic (Real Time Auto-Apply)",
+    "status": [
+      {
+        "text": "Firewall: Consistent",
+        "level": "ok"
+      },
+      {
+        "text": "ONLINE (ACTIVE)",
+        "level": "ok"
+      },
+      {
+        "text": "Disconnected",
+        "level": "error"
+      },
+      {
+        "text": "Live Updates Available",
+        "level": "warn"
+      }
+    ]
+  },
+  "applyLabel": "Apply Policy",
+  "startScreen": "policies",
+  "initial": {
+    "currentPolicy": "OWASP_Essentials",
+    "config": {
+      "policies": [
+        {
+          "name": "Legacy_Portal",
+          "virtualServer": "vs_portal_https",
+          "template": "Fundamental"
+        },
+        {
+          "name": "OWASP_Essentials",
+          "virtualServer": "vs_web_https",
+          "template": "Comprehensive"
+        }
+      ],
+      "policyData": {
+        "Legacy_Portal": {
+          "enforcementMode": "Transparent",
+          "allowedUrls": [
+            {
+              "protocol": "HTTP",
+              "url": "*"
+            },
+            {
+              "protocol": "HTTPS",
+              "url": "*"
+            }
+          ],
+          "disallowedUrls": [],
+          "description": "",
+          "policyType": "Security",
+          "appLanguage": "Auto detect",
+          "learningMode": "Automatic",
+          "fullyAutomatic": true,
+          "autoApply": "Real Time",
+          "learningSpeed": "Medium",
+          "readinessPeriod": "7",
+          "maxHeaderMode": "Length",
+          "maxHeaderLength": "8192",
+          "maxCookieMode": "Length",
+          "maxCookieLength": "8192",
+          "trustXff": "Disabled",
+          "template": "Fundamental",
+          "virtualServer": "vs_portal_https",
+          "fileTypes": [
+            {
+              "fileType": "no_ext",
+              "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
+              "urlLength": 100,
+              "requestMode": "Length",
+              "requestLength": 5000,
+              "queryStringMode": "Length",
+              "queryStringLength": 1000,
+              "postDataMode": "Length",
+              "postDataLength": 1000
+            },
+            {
+              "fileType": "* (Wildcard)",
+              "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
+              "urlLength": 100,
+              "requestMode": "Length",
+              "requestLength": 5000,
+              "queryStringMode": "Length",
+              "queryStringLength": 1000,
+              "postDataMode": "Length",
+              "postDataLength": 1000,
+              "locked": true
+            }
+          ]
+        },
+        "OWASP_Essentials": {
+          "enforcementMode": "Blocking",
+          "allowedUrls": [
+            {
+              "protocol": "HTTP",
+              "url": "*"
+            },
+            {
+              "protocol": "HTTPS",
+              "url": "*"
+            }
+          ],
+          "disallowedUrls": [],
+          "description": "",
+          "policyType": "Security",
+          "appLanguage": "Auto detect",
+          "learningMode": "Automatic",
+          "fullyAutomatic": true,
+          "autoApply": "Real Time",
+          "learningSpeed": "Medium",
+          "readinessPeriod": "7",
+          "maxHeaderMode": "Length",
+          "maxHeaderLength": "8192",
+          "maxCookieMode": "Length",
+          "maxCookieLength": "8192",
+          "trustXff": "Disabled",
+          "template": "Comprehensive",
+          "virtualServer": "vs_web_https",
+          "fileTypes": [
+            {
+              "fileType": "no_ext",
+              "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
+              "urlLength": 100,
+              "requestMode": "Length",
+              "requestLength": 5000,
+              "queryStringMode": "Length",
+              "queryStringLength": 1000,
+              "postDataMode": "Length",
+              "postDataLength": 1000
+            },
+            {
+              "fileType": "* (Wildcard)",
+              "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
+              "urlLength": 100,
+              "requestMode": "Length",
+              "requestLength": 5000,
+              "queryStringMode": "Length",
+              "queryStringLength": 1000,
+              "postDataMode": "Length",
+              "postDataLength": 1000,
+              "locked": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "menu": [
+    {
+      "label": "Statistics"
+    },
+    {
+      "label": "iApps"
+    },
+    {
+      "label": "Wizards"
+    },
+    {
+      "label": "DNS"
+    },
+    {
+      "label": "SSL Orchestrator"
+    },
+    {
+      "label": "Local Traffic"
+    },
+    {
+      "label": "Traffic Intelligence"
+    },
+    {
+      "label": "Acceleration"
+    },
+    {
+      "label": "Subscriber Management"
+    },
+    {
+      "label": "Access"
+    },
+    {
+      "label": "Device Management"
+    },
+    {
+      "label": "Shared Objects"
+    },
+    {
+      "label": "Security",
+      "children": [
+        {
+          "label": "Overview"
+        },
+        {
+          "label": "Guided Configuration"
+        },
+        {
+          "label": "Application Security",
+          "children": [
+            {
+              "label": "Security Policies",
+              "children": [
+                {
+                  "label": "Policies List",
+                  "screen": "policies"
+                }
+              ]
+            },
+            {
+              "label": "Policy Building",
+              "children": [
+                {
+                  "label": "Traffic Learning"
+                },
+                {
+                  "label": "Learning and Blocking Settings",
+                  "screen": "blockingSettings"
+                }
+              ]
+            },
+            {
+              "label": "Vulnerability Assessments"
+            },
+            {
+              "label": "URLs",
+              "children": [
+                {
+                  "label": "Allowed URLs",
+                  "children": [
+                    {
+                      "label": "Allowed HTTP URLs",
+                      "screen": "allowedUrls"
+                    },
+                    {
+                      "label": "Allowed WebSocket URLs"
+                    }
+                  ]
+                },
+                {
+                  "label": "Disallowed URLs",
+                  "children": [
+                    {
+                      "label": "Disallowed HTTP URLs",
+                      "screen": "disallowedUrls"
+                    },
+                    {
+                      "label": "Disallowed WebSocket URLs"
+                    }
+                  ]
+                },
+                {
+                  "label": "Wildcards Order"
+                },
+                {
+                  "label": "Character Set"
+                },
+                {
+                  "label": "Flows List"
+                }
+              ]
+            },
+            {
+              "label": "Parameters"
+            },
+            {
+              "label": "Session Tracking"
+            },
+            {
+              "label": "Content Profiles"
+            },
+            {
+              "label": "Audit Reports"
+            },
+            {
+              "label": "Advanced Settings"
+            }
+          ]
+        },
+        {
+          "label": "Protocol Security"
+        },
+        {
+          "label": "Network Firewall"
+        },
+        {
+          "label": "Network Address Translation"
+        },
+        {
+          "label": "Zones"
+        },
+        {
+          "label": "Packet Filter"
+        },
+        {
+          "label": "DoS Protection"
+        },
+        {
+          "label": "Bot Defense"
+        },
+        {
+          "label": "Event Logs"
+        },
+        {
+          "label": "Reporting"
+        },
+        {
+          "label": "Debug"
+        },
+        {
+          "label": "Options"
+        }
+      ]
+    }
+  ],
+  "sidePanels": {
+    "policy": [
+      {
+        "label": "Policy Configuration",
+        "open": true,
+        "items": [
+          {
+            "label": "General Settings",
+            "screen": "policyGeneral"
+          },
+          {
+            "label": "Audit Log"
+          },
+          {
+            "label": "Attack Signatures"
+          },
+          {
+            "label": "Threat Campaigns"
+          },
+          {
+            "label": "IP Intelligence"
+          },
+          {
+            "label": "IP Address Exceptions"
+          },
+          {
+            "label": "Sessions and Logins"
+          },
+          {
+            "label": "Response and Blocking Pages"
+          }
+        ]
+      },
+      {
+        "label": "HTTP Message Protection",
+        "open": false,
+        "items": [
+          {
+            "label": "File Types",
+            "screen": "fileTypes"
+          },
+          {
+            "label": "Headers"
+          },
+          {
+            "label": "Cookies"
+          },
+          {
+            "label": "Microservices"
+          }
+        ]
+      },
+      {
+        "label": "Advanced Protection",
+        "open": false,
+        "items": []
+      }
+    ]
+  },
+  "screens": {
+    "policies": {
+      "type": "list",
+      "path": [
+        "Security",
+        "Application Security",
+        "Security Policies",
+        "Policies List"
+      ],
+      "title": "Policies List",
+      "collection": "policies",
+      "columns": [
+        {
+          "field": "name",
+          "label": "Policy Name",
+          "link": {
+            "set": "currentPolicy",
+            "screen": "policyGeneral"
+          }
+        },
+        {
+          "field": "virtualServer",
+          "label": "Virtual Server"
+        },
+        {
+          "field": "template",
+          "label": "Template"
+        }
+      ],
+      "pathText": "Security » Application Security : Security Policies : Policies List"
+    },
+    "allowedUrls": {
+      "type": "list",
+      "path": [
+        "Security",
+        "Application Security",
+        "URLs",
+        "Allowed URLs"
+      ],
+      "title": "Allowed URLs List",
+      "collection": "policyData.$policy.allowedUrls",
+      "columns": [
+        {
+          "field": "protocol",
+          "label": "Protocol"
+        },
+        {
+          "field": "url",
+          "label": "URL",
+          "style": "link"
+        }
+      ],
+      "pathText": "Security » Application Security : URLs : Allowed URLs : Allowed HTTP URLs",
+      "tabs": [
+        {
+          "label": "Allowed URLs",
+          "screen": "allowedUrls"
+        },
+        {
+          "label": "Disallowed URLs",
+          "screen": "disallowedUrls"
+        },
+        {
+          "label": "Wildcards Order"
+        },
+        {
+          "label": "Character Set"
+        },
+        {
+          "label": "Flows List"
+        }
+      ]
+    },
+    "disallowedUrls": {
+      "type": "list",
+      "pathText": "Security » Application Security : URLs : Disallowed URLs : Disallowed HTTP URLs",
+      "tabs": [
+        {
+          "label": "Allowed URLs",
+          "screen": "allowedUrls"
+        },
+        {
+          "label": "Disallowed URLs",
+          "screen": "disallowedUrls"
+        },
+        {
+          "label": "Wildcards Order"
+        },
+        {
+          "label": "Character Set"
+        },
+        {
+          "label": "Flows List"
+        }
+      ],
+      "title": "Disallowed URLs List",
+      "collection": "policyData.$policy.disallowedUrls",
+      "emptyText": "No records to display.",
+      "createScreen": "disallowedUrlCreate",
+      "createLabel": "Create...",
+      "allowDelete": true,
+      "columns": [
+        {
+          "field": "protocol",
+          "label": "Protocol"
+        },
+        {
+          "field": "method",
+          "label": "Method"
+        },
+        {
+          "field": "url",
+          "label": "URL",
+          "style": "link"
+        }
+      ]
+    },
+    "disallowedUrlCreate": {
+      "type": "create",
+      "pathText": "Security » Application Security : URLs : Disallowed URLs : Disallowed HTTP URLs » New Disallowed HTTP URL...",
+      "tabs": [
+        {
+          "label": "Allowed URLs",
+          "screen": "allowedUrls"
+        },
+        {
+          "label": "Disallowed URLs",
+          "screen": "disallowedUrls"
+        },
+        {
+          "label": "Wildcards Order"
+        },
+        {
+          "label": "Character Set"
+        },
+        {
+          "label": "Flows List"
+        }
+      ],
+      "tabOn": "disallowedUrls",
+      "title": "Disallowed URL Properties",
+      "collection": "policyData.$policy.disallowedUrls",
+      "returnTo": "disallowedUrls",
+      "inlineRow": {
+        "label": "URL",
+        "help": "Example: /index.html"
+      },
+      "fields": [
+        {
+          "id": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Explicit",
+            "Wildcard"
+          ],
+          "default": "Explicit"
+        },
+        {
+          "id": "protocol",
+          "label": "Protocol",
+          "type": "select",
+          "options": [
+            "HTTP",
+            "HTTPS"
+          ],
+          "default": "HTTP"
+        },
+        {
+          "id": "method",
+          "label": "Method",
+          "type": "select",
+          "options": [
+            {
+              "value": "",
+              "label": "Select Method (Optional)..."
+            },
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "HEAD",
+            "OPTIONS",
+            "PATCH"
+          ],
+          "default": ""
+        },
+        {
+          "id": "url",
+          "label": "URL",
+          "type": "text",
+          "required": true,
+          "autoPrefix": "/"
+        }
+      ]
+    },
+    "blockingSettings": {
+      "type": "form",
+      "path": [
+        "Security",
+        "Application Security",
+        "Policy Building",
+        "Learning and Blocking Settings"
+      ],
+      "title": "Learning and Blocking Settings",
+      "fields": [
+        {
+          "id": "enforcementMode",
+          "label": "Enforcement Mode",
+          "type": "radio",
+          "options": [
+            "Transparent",
+            "Blocking"
+          ],
+          "bind": "policyData.$policy.enforcementMode",
+          "help": "Transparent logs violations without blocking. Blocking rejects requests that trigger a violation set to block."
+        }
+      ],
+      "pathText": "Security » Application Security : Policy Building : Learning and Blocking Settings"
+    },
+    "policyGeneral": {
+      "type": "form",
+      "returnTo": "policies",
+      "pathText": "Security » Application Security : Security Policies : Policies List » $policy",
+      "title": "",
+      "header": {
+        "back": "policies",
+        "buttons": [
+          "Export"
+        ],
+        "facts": [
+          {
+            "label": "Enforcement Mode",
+            "bind": "policyData.$policy.enforcementMode"
+          },
+          {
+            "label": "Learning Mode",
+            "text": "Fully Automatic (Real Time Auto-Apply)"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "fields": [
+            {
+              "id": "name",
+              "label": "Policy Name",
+              "type": "readonly",
+              "value": "$policy",
+              "sub": "Partition / Path: Common"
+            },
+            {
+              "id": "description",
+              "label": "Description",
+              "type": "textarea",
+              "bind": "policyData.$policy.description"
+            },
+            {
+              "id": "policyType",
+              "label": "Policy Type",
+              "type": "readonly",
+              "bind": "policyData.$policy.policyType"
+            },
+            {
+              "id": "template",
+              "label": "Policy Template",
+              "type": "readonly",
+              "bind": "policyData.$policy.template",
+              "linkText": "Learn More"
+            },
+            {
+              "id": "appLanguage",
+              "label": "Application Language",
+              "type": "select",
+              "options": [
+                "Auto detect",
+                "Unicode (utf-8)",
+                "Western European (iso-8859-1)"
+              ],
+              "bind": "policyData.$policy.appLanguage"
+            },
+            {
+              "id": "virtualServer",
+              "label": "Virtual Server",
+              "type": "readonly",
+              "bind": "policyData.$policy.virtualServer"
+            }
+          ]
+        },
+        {
+          "title": "Learning and Blocking",
+          "fields": [
+            {
+              "id": "enforcementMode",
+              "label": "Enforcement Mode",
+              "type": "segmented",
+              "options": [
+                "Transparent",
+                "Blocking"
+              ],
+              "bind": "policyData.$policy.enforcementMode"
+            },
+            {
+              "id": "learningMode",
+              "label": "Policy Building Learning Mode",
+              "type": "segmented",
+              "options": [
+                "Automatic",
+                "Manual",
+                "Disabled"
+              ],
+              "bind": "policyData.$policy.learningMode"
+            },
+            {
+              "id": "fullyAutomatic",
+              "label": "Fully Automatic",
+              "type": "checkbox",
+              "text": "Fully Automatic",
+              "bind": "policyData.$policy.fullyAutomatic"
+            },
+            {
+              "id": "autoApply",
+              "label": "Auto-Apply Policy",
+              "type": "segmented",
+              "options": [
+                "Disabled",
+                "Real Time",
+                "Scheduled"
+              ],
+              "bind": "policyData.$policy.autoApply"
+            },
+            {
+              "id": "learningSpeed",
+              "label": "Policy Builder Learning Speed",
+              "type": "segmented",
+              "options": [
+                "Fast",
+                "Medium",
+                "Slow"
+              ],
+              "bind": "policyData.$policy.learningSpeed"
+            },
+            {
+              "id": "readinessPeriod",
+              "label": "Enforcement Readiness Period",
+              "type": "number",
+              "suffix": "days",
+              "bind": "policyData.$policy.readinessPeriod"
+            }
+          ]
+        },
+        {
+          "title": "Basic HTTP Message Settings",
+          "fields": [
+            {
+              "id": "maxHeaderMode",
+              "label": "Maximum HTTP Header Length",
+              "type": "segmented",
+              "options": [
+                "Any",
+                "Length"
+              ],
+              "bind": "policyData.$policy.maxHeaderMode",
+              "withNumber": {
+                "bind": "policyData.$policy.maxHeaderLength",
+                "suffix": "bytes"
+              }
+            },
+            {
+              "id": "maxCookieMode",
+              "label": "Maximum Cookie Header Length",
+              "type": "segmented",
+              "options": [
+                "Any",
+                "Length"
+              ],
+              "bind": "policyData.$policy.maxCookieMode",
+              "withNumber": {
+                "bind": "policyData.$policy.maxCookieLength",
+                "suffix": "bytes"
+              }
+            },
+            {
+              "id": "statusCodes",
+              "label": "Allowed Response Status Codes",
+              "type": "chips",
+              "values": [
+                "400",
+                "401",
+                "404",
+                "407",
+                "417",
+                "503"
+              ],
+              "note": "Note: Response codes 200 through 399 are automatically allowed by the system"
+            },
+            {
+              "id": "trustXff",
+              "label": "Trust XFF Header",
+              "type": "segmented",
+              "options": [
+                "Enabled",
+                "Disabled"
+              ],
+              "bind": "policyData.$policy.trustXff"
+            }
+          ]
+        }
+      ],
+      "sidePanel": "policy"
+    },
+    "fileTypes": {
+      "type": "list",
+      "style": "modern",
+      "returnTo": "policies",
+      "sidePanel": "policy",
+      "pathText": "Security » Application Security : Security Policies : Policies List » $policy",
+      "title": "",
+      "header": {
+        "back": "policies",
+        "buttons": [
+          "Export"
+        ],
+        "facts": [
+          {
+            "label": "Enforcement Mode",
+            "bind": "policyData.$policy.enforcementMode"
+          },
+          {
+            "label": "Learning Mode",
+            "text": "Fully Automatic (Real Time Auto-Apply)"
+          }
+        ]
+      },
+      "collection": "policyData.$policy.fileTypes",
+      "summary": [
+        {
+          "bold": "{n} Allowed File Types",
+          "text": "ready to be enforced",
+          "countWhere": {
+            "staging": "Enabled",
+            "allowed": true
+          }
+        },
+        {
+          "bold": "0 Allowed File Types",
+          "text": "have suggestions"
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Create",
+          "kind": "primary",
+          "menu": [
+            {
+              "label": "Allowed File Type",
+              "defaults": {
+                "allowed": true
+              }
+            },
+            {
+              "label": "Disallowed File Type",
+              "defaults": {
+                "allowed": false,
+                "staging": "Disabled"
+              }
+            }
+          ],
+          "op": "create"
+        },
+        {
+          "label": "Enforce",
+          "kind": "primary",
+          "op": "set",
+          "set": {
+            "staging": "Disabled"
+          },
+          "doneText": "Enforced.",
+          "onlyWhere": {
+            "allowed": true
+          },
+          "noneText": "Select at least one allowed file type first."
+        },
+        {
+          "label": "Stage",
+          "op": "set",
+          "set": {
+            "staging": "Enabled",
+            "stagingSince": "$now",
+            "lastStagingEvent": "$now"
+          },
+          "doneText": "Staged.",
+          "onlyWhere": {
+            "allowed": true
+          },
+          "noneText": "Select at least one allowed file type first."
+        },
+        {
+          "label": "Delete",
+          "op": "delete",
+          "lockedText": "The pure wildcard (*) file type cannot be deleted."
+        }
+      ],
+      "columns": [
+        {
+          "field": "fileType",
+          "label": "File Type",
+          "opens": "editor"
+        },
+        {
+          "field": "allowed",
+          "label": "Allowed",
+          "type": "check"
+        },
+        {
+          "field": "urlLength",
+          "label": "URL Length",
+          "anyWhen": "urlMode",
+          "blankWhen": {
+            "allowed": false
+          }
+        },
+        {
+          "field": "requestLength",
+          "label": "Request Length",
+          "anyWhen": "requestMode",
+          "blankWhen": {
+            "allowed": false
+          }
+        },
+        {
+          "field": "queryStringLength",
+          "label": "Query String Length",
+          "anyWhen": "queryStringMode",
+          "blankWhen": {
+            "allowed": false
+          }
+        },
+        {
+          "field": "postDataLength",
+          "label": "POST Data Length",
+          "anyWhen": "postDataMode",
+          "blankWhen": {
+            "allowed": false
+          }
+        },
+        {
+          "field": "staging",
+          "label": "Status",
+          "map": {
+            "Enabled": "Staging",
+            "Disabled": "Enforced"
+          },
+          "blankWhen": {
+            "allowed": false
+          }
+        }
+      ],
+      "editor": {
+        "title": "File Type Properties",
+        "insertAt": "top",
+        "defaults": {
+          "fileType": "",
+          "allowed": true,
+          "staging": "Enabled",
+          "stagingSince": "",
+          "lastStagingEvent": "",
+          "urlMode": "Length",
+          "urlLength": 100,
+          "requestMode": "Length",
+          "requestLength": 5000,
+          "queryStringMode": "Length",
+          "queryStringLength": 1000,
+          "postDataMode": "Length",
+          "postDataLength": 1000
+        },
+        "fields": [
+          {
+            "type": "key",
+            "field": "fileType",
+            "label": "File Type",
+            "required": true
+          },
+          {
+            "type": "segmented",
+            "field": "staging",
+            "label": "Perform Staging",
+            "options": [
+              "Enabled",
+              "Disabled"
+            ],
+            "infoWhen": "Enabled",
+            "info": [
+              {
+                "label": "In Staging Since",
+                "field": "stagingSince"
+              },
+              {
+                "label": "Last Staging Event Time",
+                "field": "lastStagingEvent"
+              }
+            ],
+            "stampOn": {
+              "value": "Enabled",
+              "fields": [
+                "stagingSince",
+                "lastStagingEvent"
+              ]
+            },
+            "showWhen": {
+              "allowed": true
+            }
+          },
+          {
+            "type": "note",
+            "label": "Response Signatures",
+            "text": "Ignore",
+            "warning": "Edit this configuration in Learning and Blocking Settings",
+            "showWhen": {
+              "allowed": true
+            }
+          },
+          {
+            "type": "length",
+            "field": "urlLength",
+            "modeField": "urlMode",
+            "label": "URL Length",
+            "showWhen": {
+              "allowed": true
+            }
+          },
+          {
+            "type": "length",
+            "field": "requestLength",
+            "modeField": "requestMode",
+            "label": "Request Length",
+            "showWhen": {
+              "allowed": true
+            }
+          },
+          {
+            "type": "length",
+            "field": "queryStringLength",
+            "modeField": "queryStringMode",
+            "label": "Query String Length",
+            "showWhen": {
+              "allowed": true
+            }
+          },
+          {
+            "type": "length",
+            "field": "postDataLength",
+            "modeField": "postDataMode",
+            "label": "POST Data Length",
+            "showWhen": {
+              "allowed": true
+            }
+          }
+        ],
+        "titles": [
+          {
+            "when": {
+              "allowed": false
+            },
+            "title": "Disallowed File Type Properties"
+          }
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "id": "backupSql",
+      "label": "Send GET https://www.lab.local/backups/customers.sql",
+      "request": "GET /backups/customers.sql HTTP/1.1\nHost: www.lab.local:443\n(over HTTPS)",
+      "outcomes": [
+        {
+          "when": {
+            "all": [
+              {
+                "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+                "matches": {
+                  "field": "url",
+                  "value": "/backups/customers.sql",
+                  "where": {
+                    "protocol": "HTTPS"
+                  },
+                  "wildcardWhen": {
+                    "type": "Wildcard"
+                  }
+                }
+              },
+              {
+                "path": "applied.policyData.OWASP_Essentials.enforcementMode",
+                "equals": "Blocking"
+              }
+            ]
+          },
+          "result": "blocked",
+          "message": "Request rejected. Violation: Illegal URL. The requested URL was rejected. **Your support ID is: 1846290173466120**"
+        },
+        {
+          "when": {
+            "all": [
+              {
+                "path": "applied.policyData.OWASP_Essentials.fileTypes",
+                "some": {
+                  "fileType": "sql",
+                  "allowed": false
+                }
+              },
+              {
+                "path": "applied.policyData.OWASP_Essentials.enforcementMode",
+                "equals": "Blocking"
+              }
+            ]
+          },
+          "result": "blocked",
+          "message": "Request rejected. Violation: Illegal file type. The requested URL was rejected. **Your support ID is: 1846290173466120**"
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/customers.sql",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          "result": "logged",
+          "message": "HTTP/1.1 200 OK. The file downloaded. OWASP_Essentials is in Transparent mode, so the violation was logged but not blocked."
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          "result": "logged",
+          "message": "HTTP/1.1 200 OK. The file downloaded. OWASP_Essentials is in Transparent mode, so the violation was logged but not blocked."
+        },
+        {
+          "when": {
+            "path": "config.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/customers.sql",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The file downloaded. Your change exists in OWASP_Essentials but the policy has not been applied."
+        },
+        {
+          "when": {
+            "path": "config.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The file downloaded. Your change exists in OWASP_Essentials but the policy has not been applied."
+        }
+      ],
+      "default": {
+        "result": "allowed",
+        "message": "HTTP/1.1 200 OK. The SQL backup downloaded. Nothing in the policy stops it."
+      }
+    },
+    {
+      "id": "backupOther",
+      "label": "Send GET https://www.lab.local/backups/site.zip",
+      "request": "GET /backups/site.zip HTTP/1.1\nHost: www.lab.local:443\n(over HTTPS)",
+      "outcomes": [
+        {
+          "when": {
+            "all": [
+              {
+                "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+                "matches": {
+                  "field": "url",
+                  "value": "/backups/site.zip",
+                  "where": {
+                    "protocol": "HTTPS"
+                  },
+                  "wildcardWhen": {
+                    "type": "Wildcard"
+                  }
+                }
+              },
+              {
+                "path": "applied.policyData.OWASP_Essentials.enforcementMode",
+                "equals": "Blocking"
+              }
+            ]
+          },
+          "result": "blocked",
+          "message": "Request rejected. Violation: Illegal URL. The requested URL was rejected. **Your support ID is: 1846290173466120**"
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/site.zip",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          "result": "logged",
+          "message": "HTTP/1.1 200 OK. The file downloaded. OWASP_Essentials is in Transparent mode, so the violation was logged but not blocked."
+        },
+        {
+          "when": {
+            "path": "config.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/site.zip",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The file downloaded. Your change exists in OWASP_Essentials but the policy has not been applied."
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The archive downloaded. Blocking the sql file type does not stop the other files in /backups."
+        }
+      ],
+      "default": {
+        "result": "allowed",
+        "message": "HTTP/1.1 200 OK. The archive downloaded. Nothing in the policy stops it."
+      }
+    },
+    {
+      "id": "sqlElsewhere",
+      "label": "Send GET https://www.lab.local/old/dump.sql",
+      "request": "GET /old/dump.sql HTTP/1.1\nHost: www.lab.local:443\n(over HTTPS)",
+      "outcomes": [
+        {
+          "when": {
+            "all": [
+              {
+                "path": "applied.policyData.OWASP_Essentials.fileTypes",
+                "some": {
+                  "fileType": "sql",
+                  "allowed": false
+                }
+              },
+              {
+                "path": "applied.policyData.OWASP_Essentials.enforcementMode",
+                "equals": "Blocking"
+              }
+            ]
+          },
+          "result": "blocked",
+          "message": "Request rejected. Violation: Illegal file type. The requested URL was rejected. **Your support ID is: 1846290173466120**"
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          "result": "logged",
+          "message": "HTTP/1.1 200 OK. The file downloaded. OWASP_Essentials is in Transparent mode, so the violation was logged but not blocked."
+        },
+        {
+          "when": {
+            "path": "config.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The file downloaded. Your change exists in OWASP_Essentials but the policy has not been applied."
+        },
+        {
+          "when": {
+            "path": "config.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": ".sql"
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The SQL file downloaded. The policy has a file type called .sql, but file types are entered without the dot."
+        },
+        {
+          "when": {
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/site.zip",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The SQL file downloaded. Blocking /backups does not stop SQL files stored elsewhere in the application."
+        }
+      ],
+      "default": {
+        "result": "allowed",
+        "message": "HTTP/1.1 200 OK. The SQL file downloaded. Nothing in the policy stops it."
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "text": "Disallow every URL under /backups, using a wildcard and the protocol the application runs on.",
+      "check": {
+        "path": "config.policyData.OWASP_Essentials.disallowedUrls",
+        "matches": {
+          "field": "url",
+          "value": "/backups/site.zip",
+          "where": {
+            "protocol": "HTTPS"
+          },
+          "wildcardWhen": {
+            "type": "Wildcard"
+          }
+        }
+      }
+    },
+    {
+      "id": "s2",
+      "text": "On the policy's File Types page, create a disallowed file type for SQL files.",
+      "check": {
+        "path": "config.policyData.OWASP_Essentials.fileTypes",
+        "some": {
+          "fileType": "sql",
+          "allowed": false
+        }
+      }
+    },
+    {
+      "id": "s3",
+      "text": "Click Apply Policy.",
+      "check": {
+        "all": [
+          {
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
+            "matches": {
+              "field": "url",
+              "value": "/backups/site.zip",
+              "where": {
+                "protocol": "HTTPS"
+              },
+              "wildcardWhen": {
+                "type": "Wildcard"
+              }
+            }
+          },
+          {
+            "path": "applied.policyData.OWASP_Essentials.fileTypes",
+            "some": {
+              "fileType": "sql",
+              "allowed": false
+            }
+          },
+          {
+            "path": "applied.policyData.OWASP_Essentials.enforcementMode",
+            "equals": "Blocking"
+          }
+        ]
+      }
+    },
+    {
+      "id": "s4",
+      "text": "Send all three test requests and confirm each one is blocked.",
+      "check": {
+        "all": [
+          {
+            "path": "tests.backupSql",
+            "equals": "blocked"
+          },
+          {
+            "path": "tests.backupOther",
+            "equals": "blocked"
+          },
+          {
+            "path": "tests.sqlElsewhere",
+            "equals": "blocked"
+          }
+        ]
+      }
+    }
+  ],
+  "pendingText": "Changes details (not applied)",
+  "policySelector": {
+    "collection": "policies",
+    "field": "name"
+  },
+  "applyScope": "policyData.$policy"
+}

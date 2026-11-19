@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1",
-  "rev": 15,
+  "rev": 16,
   "draft": true,
   "code": "owasp",
   "version": 1,
@@ -9,9 +9,10 @@
   "modules": [
     {
       "id": "m01",
-      "title": "URL access control",
+      "title": "URL and file type access control",
       "labs": [
-        "owasp-v1.m01.lab01"
+        "owasp-v1.m01.lab01",
+        "owasp-v1.m01.lab02"
       ]
     }
   ]
