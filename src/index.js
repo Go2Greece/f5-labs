@@ -1,4 +1,5 @@
 import { withDb, safeError } from "./db.js";
+import { login, callback, logout, userFromSession, readCookie } from "./auth.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -7,16 +8,15 @@ function json(data, status = 200) {
   });
 }
 
-// Step 1 proof: write one record to Atlas, read it back, report the timing.
+// Setup check: write one record to Atlas, read it back, report the timing.
 async function health(env) {
   const started = Date.now();
   try {
     const result = await withDb(env, async (db) => {
       const col = db.collection("healthchecks");
-      const now = new Date();
       await col.updateOne(
         { _id: "worker-ping" },
-        { $set: { lastPing: now }, $inc: { count: 1 } },
+        { $set: { lastPing: new Date() }, $inc: { count: 1 } },
         { upsert: true },
       );
       return await col.findOne({ _id: "worker-ping" });
@@ -27,6 +27,7 @@ async function health(env) {
       read: true,
       pingCount: result.count,
       lastPing: result.lastPing,
+      googleSignInConfigured: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
       ms: Date.now() - started,
     });
   } catch (err) {
@@ -34,11 +35,33 @@ async function health(env) {
   }
 }
 
+// Who is signed in, and which course versions they can open.
+async function me(request, env) {
+  if (!readCookie(request, "sid")) return json({ signedIn: false });
+  try {
+    const user = await withDb(env, (db) => userFromSession(db, request));
+    if (!user) return json({ signedIn: false });
+    return json({
+      signedIn: true,
+      email: user.email,
+      name: user.name,
+      access: Array.isArray(user.access) ? user.access : [],
+    });
+  } catch (err) {
+    return json({ signedIn: false, error: safeError(err) }, 500);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/api/health") return health(env);
-    if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) {
+    const path = url.pathname;
+    if (path === "/api/health") return health(env);
+    if (path === "/api/me") return me(request, env);
+    if (path === "/auth/login") return login(request, env);
+    if (path === "/auth/callback") return callback(request, env);
+    if (path === "/auth/logout") return logout(request, env);
+    if (path.startsWith("/api/") || path.startsWith("/auth/")) {
       return json({ ok: false, error: "Not found" }, 404);
     }
     return env.ASSETS.fetch(request);

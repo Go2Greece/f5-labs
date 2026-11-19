@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>F5 Labs - setup check</title>
+<style>
+  body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:0;background:#F4F6F5;color:#1B2523}
+  main{max-width:560px;margin:12vh auto;padding:28px;background:#fff;border:1px solid #D5DDDA;border-radius:10px}
+  h1{font-size:20px;margin:0 0 6px}
+  p{margin:0 0 16px;color:#55625F;font-size:14px}
+  #status{font-size:16px;font-weight:600;padding:12px 14px;border-radius:8px;background:#EEF2F1}
+  #status.ok{background:#E3F4EF;color:#0B5E54}
+  #status.bad{background:#FDECEC;color:#8A1F1F}
+  pre{font-size:12px;background:#F4F6F5;padding:12px;border-radius:8px;overflow:auto;margin:14px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>F5 Labs</h1>
+  <p>Setup check: the site is live. Testing the database connection.</p>
+  <div id="status">Checking MongoDB Atlas...</div>
+  <pre id="detail"></pre>
+</main>
+<script>
+fetch('/api/health').then(function(r){return r.json();}).then(function(d){
+  var s=document.getElementById('status');
+  s.className=d.ok?'ok':'bad';
+  s.textContent=d.ok?'Database connected. Write and read both worked.':'Database not connected.';
+  document.getElementById('detail').textContent=JSON.stringify(d,null,2);
+}).catch(function(e){
+  var s=document.getElementById('status');s.className='bad';s.textContent='Could not reach the Worker.';
+  document.getElementById('detail').textContent=String(e);
+});
+</script>
+</body>
+</html>
