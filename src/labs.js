@@ -1,7 +1,7 @@
 // Course and lab API. Lab content and the rules that mark a step done come from Atlas.
 // The rules are evaluated here on the server and are never sent to the browser.
 import { evalRule } from "./rules.js";
-import { seed } from "./seed.js";
+import { seed, SEED_COURSES } from "./seed.js";
 
 function hasAccess(user, courseId) {
   return Array.isArray(user.access) && user.access.includes(courseId);
@@ -63,7 +63,12 @@ function publicLab(lab) {
 
 export async function getCourse(db, user, courseId) {
   if (!hasAccess(user, courseId)) return { status: 403, body: { error: "You do not have access to this course." } };
-  const course = await db.collection("courses").findOne({ _id: courseId });
+  let course = await db.collection("courses").findOne({ _id: courseId });
+  if (!course && SEED_COURSES.some((c) => c._id === courseId)) {
+    // First time this course is opened: load its records into Atlas. Existing records are never changed.
+    await seed(db, false);
+    course = await db.collection("courses").findOne({ _id: courseId });
+  }
   if (!course) return { status: 404, body: { error: "This course has no content yet." } };
   const labs = await db
     .collection("labs")
