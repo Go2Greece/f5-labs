@@ -4,6 +4,8 @@
   "main": "src/index.js",
   "compatibility_date": "2026-11-19",
   "compatibility_flags": ["nodejs_compat"],
+  // Keep variables added in the Cloudflare dashboard when a new version deploys.
+  "keep_vars": true,
   // Static pages live in ./public. Anything under /api/ or /auth/ runs the Worker.
   "assets": {
     "directory": "./public",
