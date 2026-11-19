@@ -79,7 +79,12 @@
       var b = el('button', t.label, 'btn small'); b.type = 'button';
       b.addEventListener('click', function () { b.disabled = true; send({ testId: t.id }).then(function () { b.disabled = false; }); });
       box.appendChild(b);
-      if (lastTest && lastTest.id === t.id) box.appendChild(el('div', lastTest.message, 'result ' + lastTest.result));
+      if (lastTest && lastTest.id === t.id) {
+        // Text between ** and ** in a lab message is shown in bold.
+        var res = el('div', undefined, 'result ' + lastTest.result);
+        String(lastTest.message).split('**').forEach(function (part, k) { if (part) res.appendChild(k % 2 ? el('b', part) : document.createTextNode(part)); });
+        box.appendChild(res);
+      }
     });
   }
 

@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 10,
+  "rev": 11,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -521,7 +521,7 @@
             ]
           },
           "result": "blocked",
-          "message": "Request rejected. Violation: Illegal URL. The requested URL was rejected. Your support ID is: 1846290173466120"
+          "message": "Request rejected. Violation: Illegal URL. The requested URL was rejected. **Your support ID is: 1846290173466120**"
         },
         {
           "when": {
