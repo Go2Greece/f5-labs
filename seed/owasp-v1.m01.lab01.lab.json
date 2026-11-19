@@ -1,43 +1,63 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 4,
+  "rev": 5,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
   "order": 1,
   "title": "Block a URL with a disallowed URL entry",
-  "intro": "The application has an admin page at /admin that must never be reachable from the internet. Add it as a disallowed URL, put the policy in blocking mode, apply the policy, then prove the request is blocked.",
+  "intro": "The application behind the OWASP_Essentials policy has an admin page at /admin that must never be reachable from the internet. Select that policy, add /admin as a disallowed URL, put the policy in blocking mode, apply it, then prove the request is blocked.",
   "device": {
     "hostname": "bigip1.lab.local",
-    "policy": "OWASP_Essentials",
     "learningMode": "Fully Automatic (Real Time Auto-Apply)"
   },
   "applyLabel": "Apply Policy",
   "startScreen": "policies",
   "initial": {
+    "currentPolicy": "Legacy_Portal",
     "config": {
-      "policy": {
-        "name": "OWASP_Essentials",
-        "enforcementMode": "Transparent"
-      },
       "policies": [
+        {
+          "name": "Legacy_Portal",
+          "virtualServer": "vs_portal_https",
+          "template": "Fundamental"
+        },
         {
           "name": "OWASP_Essentials",
           "virtualServer": "vs_web_https",
           "template": "Rapid Deployment Policy"
         }
       ],
-      "allowedUrls": [
-        {
-          "protocol": "HTTP",
-          "url": "*"
+      "policyData": {
+        "Legacy_Portal": {
+          "enforcementMode": "Transparent",
+          "allowedUrls": [
+            {
+              "protocol": "HTTP",
+              "url": "*"
+            },
+            {
+              "protocol": "HTTPS",
+              "url": "*"
+            }
+          ],
+          "disallowedUrls": []
         },
-        {
-          "protocol": "HTTPS",
-          "url": "*"
+        "OWASP_Essentials": {
+          "enforcementMode": "Transparent",
+          "allowedUrls": [
+            {
+              "protocol": "HTTP",
+              "url": "*"
+            },
+            {
+              "protocol": "HTTPS",
+              "url": "*"
+            }
+          ],
+          "disallowedUrls": []
         }
-      ],
-      "disallowedUrls": []
+      }
     }
   },
   "menu": [
@@ -218,7 +238,11 @@
       "columns": [
         {
           "field": "name",
-          "label": "Policy Name"
+          "label": "Policy Name",
+          "link": {
+            "set": "currentPolicy",
+            "screen": "policyGeneral"
+          }
         },
         {
           "field": "virtualServer",
@@ -240,7 +264,7 @@
         "Allowed URLs"
       ],
       "title": "Allowed URLs List",
-      "collection": "allowedUrls",
+      "collection": "policyData.$policy.allowedUrls",
       "columns": [
         {
           "field": "protocol",
@@ -295,7 +319,7 @@
         }
       ],
       "title": "Disallowed URLs List",
-      "collection": "disallowedUrls",
+      "collection": "policyData.$policy.disallowedUrls",
       "emptyText": "No records to display.",
       "createScreen": "disallowedUrlCreate",
       "createLabel": "Create...",
@@ -339,7 +363,7 @@
       ],
       "tabOn": "disallowedUrls",
       "title": "Disallowed URL Properties",
-      "collection": "disallowedUrls",
+      "collection": "policyData.$policy.disallowedUrls",
       "returnTo": "disallowedUrls",
       "inlineRow": {
         "label": "URL",
@@ -412,11 +436,36 @@
             "Transparent",
             "Blocking"
           ],
-          "bind": "policy.enforcementMode",
+          "bind": "policyData.$policy.enforcementMode",
           "help": "Transparent logs violations without blocking. Blocking rejects requests that trigger a violation set to block."
         }
       ],
       "pathText": "Security » Application Security : Policy Building : Learning and Blocking Settings"
+    },
+    "policyGeneral": {
+      "type": "form",
+      "returnTo": "policies",
+      "pathText": "Security » Application Security : Security Policies : Policies List : General Settings",
+      "title": "General Settings",
+      "fields": [
+        {
+          "id": "name",
+          "label": "Policy Name",
+          "type": "readonly",
+          "value": "$policy"
+        },
+        {
+          "id": "enforcementMode",
+          "label": "Enforcement Mode",
+          "type": "radio",
+          "options": [
+            "Transparent",
+            "Blocking"
+          ],
+          "bind": "policyData.$policy.enforcementMode",
+          "help": "Transparent logs violations without blocking. Blocking rejects requests that trigger a violation set to block."
+        }
+      ]
     }
   },
   "tests": [
@@ -429,7 +478,7 @@
           "when": {
             "all": [
               {
-                "path": "applied.disallowedUrls",
+                "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
                 "some": {
                   "type": "Explicit",
                   "protocol": "HTTP",
@@ -437,7 +486,7 @@
                 }
               },
               {
-                "path": "applied.policy.enforcementMode",
+                "path": "applied.policyData.OWASP_Essentials.enforcementMode",
                 "equals": "Blocking"
               }
             ]
@@ -447,7 +496,7 @@
         },
         {
           "when": {
-            "path": "applied.disallowedUrls",
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
               "protocol": "HTTP",
@@ -455,11 +504,11 @@
             }
           },
           "result": "logged",
-          "message": "HTTP/1.1 200 OK. The admin page loaded. The policy logged an Illegal URL violation but did not block, because it is in Transparent mode."
+          "message": "HTTP/1.1 200 OK. The admin page loaded. OWASP_Essentials logged an Illegal URL violation but did not block, because it is in Transparent mode."
         },
         {
           "when": {
-            "path": "config.disallowedUrls",
+            "path": "config.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
               "protocol": "HTTP",
@@ -467,7 +516,19 @@
             }
           },
           "result": "allowed",
-          "message": "HTTP/1.1 200 OK. The admin page loaded. Your changes exist but have not been applied to the policy."
+          "message": "HTTP/1.1 200 OK. The admin page loaded. The change exists in OWASP_Essentials but the policy has not been applied."
+        },
+        {
+          "when": {
+            "path": "config.policyData.Legacy_Portal.disallowedUrls",
+            "some": {
+              "type": "Explicit",
+              "protocol": "HTTP",
+              "url": "/admin"
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The admin page loaded. /admin is disallowed in Legacy_Portal, but www.lab.local is protected by OWASP_Essentials."
         }
       ],
       "default": {
@@ -478,18 +539,34 @@
   ],
   "steps": [
     {
-      "id": "s1",
-      "text": "In the main menu, go to Security › Application Security › URLs › Disallowed URLs › Disallowed HTTP URLs.",
+      "id": "s0",
+      "text": "Go to Security › Application Security › Security Policies › Policies List and click OWASP_Essentials, or choose it in the policy selector.",
       "check": {
-        "path": "visited",
-        "includes": "disallowedUrls"
+        "path": "currentPolicy",
+        "equals": "OWASP_Essentials"
+      }
+    },
+    {
+      "id": "s1",
+      "text": "Go to Security › Application Security › URLs › Disallowed URLs › Disallowed HTTP URLs.",
+      "check": {
+        "all": [
+          {
+            "path": "currentPolicy",
+            "equals": "OWASP_Essentials"
+          },
+          {
+            "path": "visited",
+            "includes": "disallowedUrls"
+          }
+        ]
       }
     },
     {
       "id": "s2",
       "text": "Click Create... and add an Explicit HTTP URL for /admin.",
       "check": {
-        "path": "config.disallowedUrls",
+        "path": "config.policyData.OWASP_Essentials.disallowedUrls",
         "some": {
           "type": "Explicit",
           "protocol": "HTTP",
@@ -499,9 +576,9 @@
     },
     {
       "id": "s3",
-      "text": "Go to Security › Application Security › Policy Building › Learning and Blocking Settings, set Enforcement Mode to Blocking and click Save.",
+      "text": "Set Enforcement Mode to Blocking for OWASP_Essentials and click Save.",
       "check": {
-        "path": "config.policy.enforcementMode",
+        "path": "config.policyData.OWASP_Essentials.enforcementMode",
         "equals": "Blocking"
       }
     },
@@ -511,7 +588,7 @@
       "check": {
         "all": [
           {
-            "path": "applied.disallowedUrls",
+            "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
               "protocol": "HTTP",
@@ -519,7 +596,7 @@
             }
           },
           {
-            "path": "applied.policy.enforcementMode",
+            "path": "applied.policyData.OWASP_Essentials.enforcementMode",
             "equals": "Blocking"
           }
         ]
@@ -534,5 +611,10 @@
       }
     }
   ],
-  "pendingText": "Changes details (not applied)"
+  "pendingText": "Changes details (not applied)",
+  "policySelector": {
+    "collection": "policies",
+    "field": "name"
+  },
+  "applyScope": "policyData.$policy"
 }

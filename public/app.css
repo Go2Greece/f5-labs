@@ -111,13 +111,17 @@ ol.steps small{display:block;color:#55625F;font-size:12px;margin-top:2px}
 .nav button.top.open{background:#12302B;color:#fff}
 .nav button.top.off,.nav button.top.off:hover{color:#7C8A86;background:#E1E6E4;cursor:default;font-weight:400}
 .nav .panel{background:#fff;margin:0 0 0 14px;border-left:1px solid #B9C4C0;border-bottom:1px solid #B9C4C0}
-.row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font:inherit;font-size:13px;cursor:pointer;border:0;border-bottom:1px solid #E1E8E5;border-left:4px solid transparent;background:#fff;color:#1B2523;padding:8px 10px}
-.row:last-child{border-bottom:0}
-.row .arrow{color:#7C8A86;font-size:11px}
-.row:hover,.row.hot{background:#9AA9B8;color:#fff}
-.row:hover .arrow,.row.hot .arrow{color:#fff}
-.row.on{border-left-color:#E8B11C;font-weight:600}
-.row.off,.row.off:hover{color:#8A9692;background:#fff;cursor:default}
+.nav .row,.fly .row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font:inherit;font-size:13px;cursor:pointer;border:0;border-bottom:1px solid #E1E8E5;border-left:4px solid transparent;background:#fff;color:#1B2523;padding:8px 10px}
+.nav .row:last-child,.fly .row:last-child{border-bottom:0}
+.nav .row .arrow,.fly .row .arrow{color:#7C8A86;font-size:11px}
+.nav .row:hover,.fly .row:hover,.nav .row.hot,.fly .row.hot{background:#9AA9B8;color:#fff}
+.nav .row:hover .arrow,.fly .row:hover .arrow,.nav .row.hot .arrow,.fly .row.hot .arrow{color:#fff}
+.nav .row.on,.fly .row.on{border-left-color:#E8B11C;font-weight:600}
+.nav .row.off,.fly .row.off,.nav .row.off:hover,.fly .row.off:hover{color:#8A9692;background:#fff;cursor:default}
 .fly{position:fixed;z-index:50;min-width:200px;max-width:260px;background:#fff;border:1px solid #9FB0AC;box-shadow:2px 3px 10px rgba(0,0,0,.25);max-height:calc(100vh - 8px);overflow:auto}
-@media (max-width:1000px){.nav,.row{font-size:12px}.row{padding:6px 8px}.nav button.top{padding:7px 10px}.fly{min-width:170px}}
-@media (max-height:480px){.row{padding:5px 8px}.nav button.top{padding:5px 10px}}
+@media (max-width:1000px){.nav,.nav .row,.fly .row{font-size:12px}.nav .row,.fly .row{padding:6px 8px}.nav button.top{padding:7px 10px}.fly{min-width:170px}}
+@media (max-height:480px){.nav .row,.fly .row{padding:5px 8px}.nav button.top{padding:5px 10px}}
+
+.devbar #devinfo{display:flex;align-items:center;gap:10px;min-width:0}
+.devbar select{font:inherit;font-size:13px;font-weight:600;padding:5px 8px;border:1px solid #9FB0AC;border-radius:4px;background:#fff;max-width:220px}
+table.grid a{color:#0B5E54;font-weight:600}

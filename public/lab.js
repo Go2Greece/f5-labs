@@ -14,7 +14,18 @@
     for (var i = 0; i < keys.length - 1; i++) { if (typeof o[keys[i]] !== 'object' || o[keys[i]] === null) o[keys[i]] = {}; o = o[keys[i]]; }
     o[keys[keys.length - 1]] = value;
   }
-  function dirty() { return JSON.stringify(state.config) !== JSON.stringify(state.applied); }
+  // Paths in a lab record may contain $policy, meaning "the policy chosen in the selector".
+  function rp(path) { return String(path).split('$policy').join(state.currentPolicy || ''); }
+  function cfgGet(path) { return getPath(state.config, rp(path)); }
+  function cfgSet(path, value) { setPath(state.config, rp(path), value); }
+  function dirty() {
+    if (lab.applyScope) return JSON.stringify(cfgGet(lab.applyScope)) !== JSON.stringify(getPath(state.applied, rp(lab.applyScope)));
+    return JSON.stringify(state.config) !== JSON.stringify(state.applied);
+  }
+  function applyNow() {
+    if (lab.applyScope) setPath(state.applied, rp(lab.applyScope), clone(cfgGet(lab.applyScope)));
+    else state.applied = clone(state.config);
+  }
 
   // ---- server ----
   function send(extra) {
@@ -176,6 +187,8 @@
   function renderBar() {
     $('pending').hidden = !dirty();
     $('apply').disabled = !dirty();
+    var sel = $('policySel');
+    if (sel) sel.value = state.currentPolicy || '';
   }
 
   // ---- screens ----
@@ -192,6 +205,8 @@
         r.addEventListener('change', function () { onChange(o); });
         lb.appendChild(r); lb.appendChild(document.createTextNode(o)); wrap.appendChild(lb);
       });
+    } else if (f.type === 'readonly') {
+      wrap.appendChild(el('span', value == null ? '' : String(value)));
     } else if (f.type === 'checkbox') {
       var c = el('input'); c.type = 'checkbox'; c.id = 'f_' + f.id; c.checked = Boolean(value);
       c.addEventListener('change', function () { onChange(c.checked); }); wrap.appendChild(c);
@@ -249,7 +264,7 @@
     if (flash) box.appendChild(el('div', flash, 'flash'));
 
     if (s.type === 'list') {
-      var rows = getPath(state.config, s.collection) || [];
+      var rows = cfgGet(s.collection) || [];
       var selected = {};
       if (s.createScreen) {
         var tb = el('div', undefined, 'toolbar');
@@ -265,7 +280,17 @@
       rows.forEach(function (r, i) {
         var tr = el('tr');
         if (s.allowDelete) { var td = el('td'), cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1)); cb.addEventListener('change', function () { selected[i] = cb.checked; }); td.appendChild(cb); tr.appendChild(td); }
-        s.columns.forEach(function (c) { tr.appendChild(el('td', r[c.field])); });
+        s.columns.forEach(function (c) {
+          if (!c.link) { tr.appendChild(el('td', r[c.field])); return; }
+          // A linked cell opens that record, for example clicking a policy name selects the policy.
+          var td2 = el('td'), a = el('a', r[c.field]); a.href = '#';
+          a.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            if (c.link.set) state[c.link.set] = r[c.field];
+            go(c.link.screen || current); send();
+          });
+          td2.appendChild(a); tr.appendChild(td2);
+        });
         tbody.appendChild(tr);
       });
       t.appendChild(tbody); box.appendChild(t);
@@ -274,7 +299,7 @@
         del.addEventListener('click', function () {
           var keep = rows.filter(function (_, i) { return !selected[i]; });
           if (keep.length === rows.length) return;
-          setPath(state.config, s.collection, keep); go(current, 'Deleted.'); send();
+          cfgSet(s.collection, keep); go(current, 'Deleted.'); send();
         });
         box.appendChild(del);
       }
@@ -297,20 +322,20 @@
           if (f.type === 'select' && f.options) vals[f.id] = v;
         });
         if (!ok) return;
-        var list = (getPath(state.config, s.collection) || []).slice(); list.push(clone(vals));
-        setPath(state.config, s.collection, list);
+        var list = (cfgGet(s.collection) || []).slice(); list.push(clone(vals));
+        cfgSet(s.collection, list);
         go(s.returnTo, 'Created. Apply the policy to put the change into effect.'); send();
       });
       act.appendChild(cancel); act.appendChild(create); box.appendChild(act);
     }
 
     if (s.type === 'form') {
-      var fv = {}; s.fields.forEach(function (f) { fv[f.id] = getPath(state.config, f.bind); });
+      var fv = {}; s.fields.forEach(function (f) { fv[f.id] = f.type === 'readonly' ? (f.value !== undefined ? rp(f.value) : cfgGet(f.bind)) : cfgGet(f.bind); });
       box.appendChild(formRows(s.fields, fv));
       var a2 = el('div', undefined, 'actions');
       var save = el('button', 'Save', 'btn'); save.type = 'button';
       save.addEventListener('click', function () {
-        s.fields.forEach(function (f) { setPath(state.config, f.bind, fv[f.id]); });
+        s.fields.forEach(function (f) { if (f.type !== 'readonly') cfgSet(f.bind, fv[f.id]); });
         go(current, 'Saved. Apply the policy to put the change into effect.'); send();
       });
       a2.appendChild(save); box.appendChild(a2);
@@ -327,11 +352,20 @@
     [b.version, b.module].forEach(function (x) { c.appendChild(document.createTextNode(' › ' + x)); });
     c.appendChild(document.createTextNode(' › ')); c.appendChild(el('b', b.lab));
     $('ltitle').textContent = lab.title; $('lintro').textContent = lab.intro || '';
-    $('devinfo').textContent = [lab.device.hostname, lab.device.policy ? 'Policy: ' + lab.device.policy : '', lab.device.learningMode ? 'Learning Mode: ' + lab.device.learningMode : ''].filter(Boolean).join('  |  ');
+    var info = $('devinfo'); info.textContent = '';
+    if (lab.policySelector) {
+      // The policy selector: every policy screen shows and edits the policy chosen here.
+      var ps = el('select'); ps.id = 'policySel'; ps.setAttribute('aria-label', 'Current edited security policy');
+      (getPath(state.config, lab.policySelector.collection) || []).forEach(function (r) { var o = el('option', r[lab.policySelector.field]); o.value = r[lab.policySelector.field]; ps.appendChild(o); });
+      ps.value = state.currentPolicy || '';
+      ps.addEventListener('change', function () { state.currentPolicy = ps.value; flash = ''; renderScreen(); renderBar(); send(); });
+      info.appendChild(ps);
+    }
+    info.appendChild(el('span', [lab.policySelector ? '' : lab.device.hostname, lab.device.learningMode ? 'Learning Mode: ' + lab.device.learningMode : ''].filter(Boolean).join('  |  ')));
     $('pending').textContent = lab.pendingText;
     $('apply').textContent = lab.applyLabel;
     $('apply').addEventListener('click', function () {
-      state.applied = clone(state.config); flash = 'Policy applied.'; renderScreen(); renderBar(); send();
+      applyNow(); flash = 'Policy applied.'; renderScreen(); renderBar(); send();
     });
     $('reset').addEventListener('click', function () {
       lastTest = null;

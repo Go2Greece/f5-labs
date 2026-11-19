@@ -17,7 +17,13 @@ function clone(v) {
 
 function freshState(lab) {
   const config = clone((lab.initial && lab.initial.config) || {});
-  return { config, applied: clone(config), visited: [], tests: {} };
+  return {
+    config,
+    applied: clone(config),
+    visited: [],
+    tests: {},
+    currentPolicy: (lab.initial && lab.initial.currentPolicy) || null,
+  };
 }
 
 // Keep only the parts of client state the engine understands, and bound its size.
@@ -32,6 +38,7 @@ function cleanState(lab, input) {
     applied: s.applied && typeof s.applied === "object" ? s.applied : base.applied,
     visited: Array.isArray(s.visited) ? s.visited.filter((v) => typeof v === "string").slice(0, 200) : [],
     tests: s.tests && typeof s.tests === "object" ? s.tests : {},
+    currentPolicy: typeof s.currentPolicy === "string" ? s.currentPolicy.slice(0, 100) : base.currentPolicy,
   };
 }
 
@@ -53,6 +60,8 @@ function publicLab(lab) {
     device: lab.device || {},
     applyLabel: lab.applyLabel || "Apply",
     pendingText: lab.pendingText || "Changes not yet applied",
+    applyScope: lab.applyScope || null,
+    policySelector: lab.policySelector || null,
     startScreen: lab.startScreen,
     menu: lab.menu || [],
     screens: lab.screens || {},
@@ -121,7 +130,9 @@ export async function getLab(db, user, labId) {
   if (error) return error;
   const course = await db.collection("courses").findOne({ _id: lab.courseId });
   const saved = await db.collection("progress").findOne({ _id: progressId(user, labId) });
-  const state = saved && saved.state ? cleanState(lab, saved.state) : freshState(lab);
+  // Saved progress only counts for the revision of the lab it was made on.
+  const usable = saved && saved.state && (saved.labRev || 0) === (lab.rev || 0);
+  const state = usable ? cleanState(lab, saved.state) : freshState(lab);
   const module = course && (course.modules || []).find((m) => m.id === lab.moduleId);
   return {
     status: 200,
@@ -163,6 +174,7 @@ export async function checkLab(db, user, body) {
       email: user.email,
       courseId: lab.courseId,
       labId: lab._id,
+      labRev: lab.rev || 0,
       state,
       steps: result.steps,
       complete: result.complete,
