@@ -379,3 +379,5 @@ table.mgrid td .linkish{white-space:nowrap}
 .tests .tcase{margin-bottom:12px}
 .form .ctl i.small{font-size:12px}
 .screen .actions{gap:4px}
+.dropmenu .ico{display:inline-block;width:18px;font-weight:700}
+.mbtn.primary:disabled{background:#9fb1d6;border-color:#9fb1d6;color:#fff}

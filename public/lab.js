@@ -461,6 +461,7 @@
         var n = mrows.filter(function (r) { return recMatches(r, it.countWhere); }).length;
         var sp = el('span'); sp.appendChild(el('b', String(it.bold || '').replace('{n}', n))); sp.appendChild(document.createTextNode(' ' + (it.text || ''))); sum.appendChild(sp);
       });
+      var needSel = [];
       (s.buttons || []).forEach(function (bt) {
         var b = el('button', bt.label + (bt.menu ? ' \u25BE' : ''), 'mbtn ' + (bt.kind || 'plain')); b.type = 'button';
         if (bt.screen) b.addEventListener('click', function () { go(bt.screen); });
@@ -470,7 +471,8 @@
           var old = document.querySelector('.dropmenu'); if (old) { old.parentNode.removeChild(old); return; }
           var dm = el('div', undefined, 'dropmenu'), r = b.getBoundingClientRect();
           bt.menu.forEach(function (mi) {
-            var mb = el('button', mi.label); mb.type = 'button';
+            var mb = el('button'); mb.type = 'button';
+            if (mi.icon) mb.appendChild(el('span', mi.icon, 'ico')); mb.appendChild(document.createTextNode(mi.label));
             mb.addEventListener('click', function () { dm.parentNode.removeChild(dm); openEditor(s, -1, mi.defaults); });
             dm.appendChild(mb);
           });
@@ -496,20 +498,23 @@
           cfgSet(s.collection, list); go(current, (bt.doneText || 'Updated.') + ' Apply the policy to put the change into effect.'); send();
         });
         else { b.disabled = true; b.title = 'Not part of this lab'; }
+        if (bt.op === 'set' || bt.op === 'delete') needSel.push(b);
         acts.appendChild(b);
       });
+      // Enforce, Stage and Delete stay greyed until at least one row is ticked, as on the device.
+      var syncSel = function () { var on = Object.keys(msel).some(function (k) { return msel[k]; }); needSel.forEach(function (x) { x.disabled = !on; }); };
       top.appendChild(sum); top.appendChild(acts); host.appendChild(top);
       var fbar = el('div', undefined, 'mfilter'); fbar.appendChild(el('span', '\u25BD\u25BE', 'ficon')); fbar.appendChild(el('span', mrows.length + ' Entries', 'ents')); host.appendChild(fbar);
       var mt = el('table', undefined, 'mgrid'), mh = el('tr'), mth = el('th', undefined, 'chk'), mall = el('input');
       mall.type = 'checkbox'; mall.setAttribute('aria-label', 'Select all rows');
-      mall.addEventListener('change', function () { mboxes.forEach(function (cb, i) { cb.checked = mall.checked; msel[i] = mall.checked; }); });
+      mall.addEventListener('change', function () { mboxes.forEach(function (cb, i) { cb.checked = mall.checked; msel[i] = mall.checked; }); syncSel(); });
       mth.appendChild(mall); mh.appendChild(mth);
       s.columns.forEach(function (c) { mh.appendChild(el('th', c.label)); });
       var mhead = el('thead'); mhead.appendChild(mh); mt.appendChild(mhead);
       var mbody = el('tbody');
       mrows.forEach(function (r, i) {
         var tr = el('tr'), tdc = el('td', undefined, 'chk'), cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1));
-        cb.addEventListener('change', function () { msel[i] = cb.checked; }); mboxes.push(cb); tdc.appendChild(cb); tr.appendChild(tdc);
+        cb.addEventListener('change', function () { msel[i] = cb.checked; syncSel(); }); mboxes.push(cb); tdc.appendChild(cb); tr.appendChild(tdc);
         s.columns.forEach(function (c) {
           var td = el('td'), v = r[c.field];
           if (c.anyWhen && r[c.anyWhen] === 'Any') v = 'Any';
@@ -526,7 +531,7 @@
         mbody.appendChild(tr);
       });
       if (!mrows.length) { var me = el('td', s.emptyText || 'No records to display.', 'empty'); me.colSpan = s.columns.length + 1; var mer = el('tr'); mer.appendChild(me); mbody.appendChild(mer); }
-      mt.appendChild(mbody); host.appendChild(mt);
+      mt.appendChild(mbody); host.appendChild(mt); syncSel();
     } else if (s.type === 'list') {
       var rows = cfgGet(s.collection) || [];
       var selected = {};
