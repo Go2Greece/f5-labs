@@ -321,3 +321,4 @@ input.num{font:inherit;width:70px;padding:4px 8px;border:1px solid #c3c7d1;borde
 .form input.num[type=text]{width:70px;max-width:70px}
 .lesson .foot{gap:8px}
 .lesson .foot .btn{white-space:nowrap}
+#althead .fact:not(.sepd){flex-shrink:0;overflow:visible}
