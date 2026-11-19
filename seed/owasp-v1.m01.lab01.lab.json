@@ -1,13 +1,13 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 9,
+  "rev": 10,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
   "order": 1,
   "title": "Block a URL with a disallowed URL entry",
-  "requirement": "The web application behind the OWASP_Essentials policy runs over HTTP on port 80. Requests to its admin page, /admin, must be blocked.",
-  "intro": "Select the OWASP_Essentials policy, disallow the URL for the right protocol, make the policy block, apply it, then prove it with a test request.",
+  "requirement": "The web application behind the OWASP_Essentials policy runs over HTTPS on port 443. It has an admin page at /admin that must never be reachable from the internet. Requests to /admin must be blocked.",
+  "intro": "Select the OWASP_Essentials policy, disallow the URL for the protocol the application runs on, make the policy block, apply it, then prove it with a test request.",
   "device": {
     "hostname": "bigip1.lab.approxee.com",
     "ip": "192.168.2.12",
@@ -500,8 +500,8 @@
   "tests": [
     {
       "id": "adminRequest",
-      "label": "Send GET http://www.lab.local/admin",
-      "request": "GET /admin HTTP/1.1\nHost: www.lab.local:80",
+      "label": "Send GET https://www.lab.local/admin",
+      "request": "GET /admin HTTP/1.1\nHost: www.lab.local:443\n(over HTTPS)",
       "outcomes": [
         {
           "when": {
@@ -510,7 +510,7 @@
                 "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
                 "some": {
                   "type": "Explicit",
-                  "protocol": "HTTP",
+                  "protocol": "HTTPS",
                   "url": "/admin"
                 }
               },
@@ -528,7 +528,7 @@
             "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
-              "protocol": "HTTP",
+              "protocol": "HTTPS",
               "url": "/admin"
             }
           },
@@ -540,7 +540,7 @@
             "path": "config.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
-              "protocol": "HTTP",
+              "protocol": "HTTPS",
               "url": "/admin"
             }
           },
@@ -551,19 +551,19 @@
           "when": {
             "path": "config.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
-              "protocol": "HTTPS",
+              "protocol": "HTTP",
               "url": "/admin"
             }
           },
           "result": "allowed",
-          "message": "HTTP/1.1 200 OK. The admin page loaded. /admin is disallowed for HTTPS, but this application runs over HTTP on port 80."
+          "message": "HTTP/1.1 200 OK. The admin page loaded. /admin is disallowed for HTTP, but this application runs over HTTPS on port 443."
         },
         {
           "when": {
             "path": "config.policyData.Legacy_Portal.disallowedUrls",
             "some": {
               "type": "Explicit",
-              "protocol": "HTTP",
+              "protocol": "HTTPS",
               "url": "/admin"
             }
           },
@@ -609,7 +609,7 @@
         "path": "config.policyData.OWASP_Essentials.disallowedUrls",
         "some": {
           "type": "Explicit",
-          "protocol": "HTTP",
+          "protocol": "HTTPS",
           "url": "/admin"
         }
       }
@@ -631,7 +631,7 @@
             "path": "applied.policyData.OWASP_Essentials.disallowedUrls",
             "some": {
               "type": "Explicit",
-              "protocol": "HTTP",
+              "protocol": "HTTPS",
               "url": "/admin"
             }
           },
