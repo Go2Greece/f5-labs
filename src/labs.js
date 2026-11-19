@@ -56,6 +56,7 @@ function publicLab(lab) {
     courseId: lab.courseId,
     moduleId: lab.moduleId,
     title: lab.title,
+    requirement: lab.requirement || "",
     intro: lab.intro,
     device: lab.device || {},
     applyLabel: lab.applyLabel || "Apply",

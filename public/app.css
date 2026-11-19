@@ -271,3 +271,6 @@ ol.steps li.done .tick{background:#1e3f8f;border-color:#1e3f8f}
 .mast{justify-content:space-between}
 .mast .status{order:1}
 .mast .brand{order:2}
+
+.lesson .req{margin:8px 0;padding:9px 11px;background:#fff;border:1px solid #c3c7d1;border-left:4px solid #1e3f8f;border-radius:4px;font-size:13px;line-height:1.4;color:#0a0e1c}
+.lesson .req b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#1e3f8f;margin-bottom:3px}

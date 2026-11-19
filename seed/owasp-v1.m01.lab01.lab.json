@@ -1,12 +1,13 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 7,
+  "rev": 8,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
   "order": 1,
   "title": "Block a URL with a disallowed URL entry",
-  "intro": "The application behind the OWASP_Essentials policy has an admin page at /admin that must never be reachable from the internet. Select that policy, add /admin as a disallowed URL, put the policy in blocking mode, apply it, then prove the request is blocked.",
+  "requirement": "Requests to /admin on the application protected by the OWASP_Essentials policy must be blocked.",
+  "intro": "The application has an admin page at /admin that must never be reachable from the internet. Configure the policy so the request is rejected, then prove it with a test request.",
   "device": {
     "hostname": "bigip1.lab.approxee.com",
     "ip": "192.168.2.12",

@@ -365,6 +365,7 @@
     [b.version, b.module].forEach(function (x) { c.appendChild(document.createTextNode(' › ' + x)); });
     c.appendChild(document.createTextNode(' › ')); c.appendChild(el('b', b.lab));
     $('ltitle').textContent = lab.title; $('lintro').textContent = lab.intro || '';
+    $('lreq').textContent = lab.requirement || ''; $('lreqbox').hidden = !lab.requirement;
     // Device chrome: banner, header strip with a live clock, and the status lines.
     var dev = lab.device || {};
     var banner = $('banner'); banner.textContent = (dev.banner && dev.banner.text) || dev.hostname || ''; banner.hidden = !banner.textContent;
