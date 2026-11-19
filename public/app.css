@@ -264,3 +264,6 @@ ol.steps li.done .tick{background:#1e3f8f;border-color:#1e3f8f}
   .lesson .head h2{font-size:13px;margin:0}
 }
 .build{color:#9aa0ad}
+/* Device font stack, as on the real console */
+.win,.win button,.win select,.win input,.fly,.fly .row{font-family:FreeSans,Arial,Helvetica,sans-serif}
+.win .mast .brand,.win .mast .brand .sim{font-family:Archivo,Arial,sans-serif}
