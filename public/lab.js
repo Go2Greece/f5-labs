@@ -328,6 +328,8 @@
         var ok = true;
         s.fields.forEach(function (f) {
           var v = typeof vals[f.id] === 'string' ? vals[f.id].trim() : vals[f.id], msg = '';
+          // The device adds a missing leading character for you (for example the / on a URL).
+          if (typeof v === 'string' && v && f.autoPrefix && v.indexOf(f.autoPrefix) !== 0) v = f.autoPrefix + v;
           if (typeof v === 'string') vals[f.id] = v;
           if (f.required && !v) msg = f.label + ' is required.';
           else if (f.mustStartWith && String(v).indexOf(f.mustStartWith) !== 0) msg = f.label + ' must start with ' + f.mustStartWith;

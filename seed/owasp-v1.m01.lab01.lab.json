@@ -1,13 +1,13 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 8,
+  "rev": 9,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
   "order": 1,
   "title": "Block a URL with a disallowed URL entry",
-  "requirement": "Requests to /admin on the application protected by the OWASP_Essentials policy must be blocked.",
-  "intro": "The application has an admin page at /admin that must never be reachable from the internet. Configure the policy so the request is rejected, then prove it with a test request.",
+  "requirement": "The web application behind the OWASP_Essentials policy runs over HTTP on port 80. Requests to its admin page, /admin, must be blocked.",
+  "intro": "Select the OWASP_Essentials policy, disallow the URL for the right protocol, make the policy block, apply it, then prove it with a test request.",
   "device": {
     "hostname": "bigip1.lab.approxee.com",
     "ip": "192.168.2.12",
@@ -443,7 +443,7 @@
           "label": "URL",
           "type": "text",
           "required": true,
-          "mustStartWith": "/"
+          "autoPrefix": "/"
         }
       ]
     },
@@ -500,8 +500,8 @@
   "tests": [
     {
       "id": "adminRequest",
-      "label": "Send GET /admin",
-      "request": "GET /admin HTTP/1.1\nHost: www.lab.local",
+      "label": "Send GET http://www.lab.local/admin",
+      "request": "GET /admin HTTP/1.1\nHost: www.lab.local:80",
       "outcomes": [
         {
           "when": {
@@ -549,6 +549,17 @@
         },
         {
           "when": {
+            "path": "config.policyData.OWASP_Essentials.disallowedUrls",
+            "some": {
+              "protocol": "HTTPS",
+              "url": "/admin"
+            }
+          },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The admin page loaded. /admin is disallowed for HTTPS, but this application runs over HTTP on port 80."
+        },
+        {
+          "when": {
             "path": "config.policyData.Legacy_Portal.disallowedUrls",
             "some": {
               "type": "Explicit",
@@ -593,7 +604,7 @@
     },
     {
       "id": "s2",
-      "text": "Click Create... and add an Explicit HTTP URL for /admin.",
+      "text": "Click Create... and add an Explicit URL for admin, using the protocol the application runs on.",
       "check": {
         "path": "config.policyData.OWASP_Essentials.disallowedUrls",
         "some": {
