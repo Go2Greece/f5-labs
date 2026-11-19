@@ -37,8 +37,12 @@
         busy--;
         if (d.error) { $('saved').textContent = d.error; return d; }
         if (extra && (extra.reset || extra.testId)) state = d.state;
+        else if (d.state && d.state.tests) state.tests = d.state.tests;
         steps = d.steps || {};
         if (d.test) lastTest = d.test;
+        else if (lastTest && d.stale && d.stale.indexOf(lastTest.id) > -1) {
+          lastTest = { id: lastTest.id, result: 'stale', message: 'The configuration has changed since this test was sent. Send the request again to see the result now.' };
+        }
         $('saved').textContent = busy ? 'Saving...' : 'Progress saved';
         renderLesson(d.complete);
         return d;

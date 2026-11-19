@@ -86,7 +86,7 @@ export async function getCourse(db, user, courseId) {
     .toArray();
   const done = await db
     .collection("progress")
-    .find({ googleId: user.googleId, courseId }, { projection: { labId: 1, complete: 1, steps: 1 } })
+    .find({ googleId: user.googleId, courseId }, { projection: { labId: 1, complete: 1, completedAt: 1, steps: 1 } })
     .toArray();
   const byLab = Object.fromEntries(done.map((p) => [p.labId, p]));
   const titles = Object.fromEntries(labs.map((l) => [l._id, l.title]));
@@ -107,7 +107,7 @@ export async function getCourse(db, user, courseId) {
             id: labId,
             title: titles[labId] || labId,
             available: Boolean(titles[labId]),
-            complete: Boolean(p && p.complete),
+            complete: Boolean(p && (p.completedAt || p.complete)),
             stepsDone: stepValues.filter(Boolean).length,
             stepsTotal: stepValues.length,
           };
@@ -156,13 +156,28 @@ export async function checkLab(db, user, body) {
   if (error) return error;
   const state = body.reset ? freshState(lab) : cleanState(lab, body.state);
 
+  // A recorded test result only stands while the configuration would still produce it.
+  // If the student changes something that alters the outcome, the result is dropped and
+  // the test has to be sent again, so a step can go back from done to not done.
+  const outcomeOf = (def) =>
+    (def.outcomes || []).find((o) => evalRule(o.when, state)) || def.default || { result: "none", message: "" };
+  const stale = [];
+  for (const def of lab.tests || []) {
+    if (def.id in state.tests && state.tests[def.id] !== outcomeOf(def).result) {
+      delete state.tests[def.id];
+      stale.push(def.id);
+    }
+  }
+
   let test = null;
   if (!body.reset && body.testId) {
     const def = (lab.tests || []).find((t) => t.id === body.testId);
     if (def) {
-      const hit = (def.outcomes || []).find((o) => evalRule(o.when, state)) || def.default || { result: "none", message: "" };
+      const hit = outcomeOf(def);
       state.tests[def.id] = hit.result;
       test = { id: def.id, result: hit.result, message: hit.message };
+      const i = stale.indexOf(def.id);
+      if (i > -1) stale.splice(i, 1);
     }
   }
 
@@ -184,7 +199,7 @@ export async function checkLab(db, user, body) {
   };
   if (result.complete) update.$min = { completedAt: now };
   await db.collection("progress").updateOne({ _id: progressId(user, lab._id) }, update, { upsert: true });
-  return { status: 200, body: { state, test, ...result } };
+  return { status: 200, body: { state, test, stale, ...result } };
 }
 
 export async function runSeed(db, user, replace) {

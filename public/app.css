@@ -125,3 +125,4 @@ ol.steps small{display:block;color:#55625F;font-size:12px;margin-top:2px}
 .devbar #devinfo{display:flex;align-items:center;gap:10px;min-width:0}
 .devbar select{font:inherit;font-size:13px;font-weight:600;padding:5px 8px;border:1px solid #9FB0AC;border-radius:4px;background:#fff;max-width:220px}
 table.grid a{color:#0B5E54;font-weight:600}
+.result.stale{background:#FDECEC;color:#8A1F1F}
