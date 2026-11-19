@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab01",
-  "rev": 14,
+  "rev": 15,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -88,20 +88,33 @@
             {
               "fileType": "no_ext",
               "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
               "urlLength": 100,
+              "requestMode": "Length",
               "requestLength": 5000,
+              "queryStringMode": "Length",
               "queryStringLength": 1000,
-              "postDataLength": 1000,
-              "status": "Staging"
+              "postDataMode": "Length",
+              "postDataLength": 1000
             },
             {
               "fileType": "* (Wildcard)",
               "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
               "urlLength": 100,
+              "requestMode": "Length",
               "requestLength": 5000,
+              "queryStringMode": "Length",
               "queryStringLength": 1000,
+              "postDataMode": "Length",
               "postDataLength": 1000,
-              "status": "Staging"
+              "locked": true
             }
           ]
         },
@@ -137,20 +150,33 @@
             {
               "fileType": "no_ext",
               "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
               "urlLength": 100,
+              "requestMode": "Length",
               "requestLength": 5000,
+              "queryStringMode": "Length",
               "queryStringLength": 1000,
-              "postDataLength": 1000,
-              "status": "Staging"
+              "postDataMode": "Length",
+              "postDataLength": 1000
             },
             {
               "fileType": "* (Wildcard)",
               "allowed": true,
+              "staging": "Enabled",
+              "stagingSince": "2026-11-05 14:15:11",
+              "lastStagingEvent": "2026-11-05 14:15:11",
+              "urlMode": "Length",
               "urlLength": 100,
+              "requestMode": "Length",
               "requestLength": 5000,
+              "queryStringMode": "Length",
               "queryStringLength": 1000,
+              "postDataMode": "Length",
               "postDataLength": 1000,
-              "status": "Staging"
+              "locked": true
             }
           ]
         }
@@ -818,7 +844,10 @@
       "summary": [
         {
           "bold": "{n} Allowed File Types",
-          "text": "ready to be enforced"
+          "text": "ready to be enforced",
+          "countWhere": {
+            "staging": "Enabled"
+          }
         },
         {
           "bold": "0 Allowed File Types",
@@ -829,24 +858,39 @@
         {
           "label": "Create",
           "kind": "primary",
-          "menu": true
+          "menu": true,
+          "op": "create"
         },
         {
           "label": "Enforce",
-          "kind": "primary"
+          "kind": "primary",
+          "op": "set",
+          "set": {
+            "staging": "Disabled"
+          },
+          "doneText": "Enforced."
         },
         {
-          "label": "Stage"
+          "label": "Stage",
+          "op": "set",
+          "set": {
+            "staging": "Enabled",
+            "stagingSince": "$now",
+            "lastStagingEvent": "$now"
+          },
+          "doneText": "Staged."
         },
         {
-          "label": "Delete"
+          "label": "Delete",
+          "op": "delete",
+          "lockedText": "The pure wildcard (*) file type cannot be deleted."
         }
       ],
       "columns": [
         {
           "field": "fileType",
           "label": "File Type",
-          "style": "link"
+          "opens": "editor"
         },
         {
           "field": "allowed",
@@ -855,25 +899,117 @@
         },
         {
           "field": "urlLength",
-          "label": "URL Length"
+          "label": "URL Length",
+          "anyWhen": "urlMode"
         },
         {
           "field": "requestLength",
-          "label": "Request Length"
+          "label": "Request Length",
+          "anyWhen": "requestMode"
         },
         {
           "field": "queryStringLength",
-          "label": "Query String Length"
+          "label": "Query String Length",
+          "anyWhen": "queryStringMode"
         },
         {
           "field": "postDataLength",
-          "label": "POST Data Length"
+          "label": "POST Data Length",
+          "anyWhen": "postDataMode"
         },
         {
-          "field": "status",
-          "label": "Status"
+          "field": "staging",
+          "label": "Status",
+          "map": {
+            "Enabled": "Staging",
+            "Disabled": "Enforced"
+          }
         }
-      ]
+      ],
+      "editor": {
+        "title": "File Type Properties",
+        "insertAt": "top",
+        "defaults": {
+          "fileType": "",
+          "allowed": true,
+          "staging": "Enabled",
+          "stagingSince": "",
+          "lastStagingEvent": "",
+          "urlMode": "Length",
+          "urlLength": 100,
+          "requestMode": "Length",
+          "requestLength": 5000,
+          "queryStringMode": "Length",
+          "queryStringLength": 1000,
+          "postDataMode": "Length",
+          "postDataLength": 1000
+        },
+        "fields": [
+          {
+            "type": "key",
+            "field": "fileType",
+            "label": "File Type",
+            "required": true
+          },
+          {
+            "type": "segmented",
+            "field": "staging",
+            "label": "Perform Staging",
+            "options": [
+              "Enabled",
+              "Disabled"
+            ],
+            "infoWhen": "Enabled",
+            "info": [
+              {
+                "label": "In Staging Since",
+                "field": "stagingSince"
+              },
+              {
+                "label": "Last Staging Event Time",
+                "field": "lastStagingEvent"
+              }
+            ],
+            "stampOn": {
+              "value": "Enabled",
+              "fields": [
+                "stagingSince",
+                "lastStagingEvent"
+              ]
+            }
+          },
+          {
+            "type": "note",
+            "label": "Response Signatures",
+            "text": "Ignore",
+            "warning": "Edit this configuration in Learning and Blocking Settings"
+          },
+          {
+            "type": "length",
+            "field": "urlLength",
+            "modeField": "urlMode",
+            "label": "URL Length"
+          },
+          {
+            "type": "length",
+            "field": "requestLength",
+            "modeField": "requestMode",
+            "label": "Request Length"
+          },
+          {
+            "type": "length",
+            "field": "queryStringLength",
+            "modeField": "queryStringMode",
+            "label": "Query String Length"
+          },
+          {
+            "type": "length",
+            "field": "postDataLength",
+            "modeField": "postDataMode",
+            "label": "POST Data Length"
+          }
+        ]
+      }
     }
   },
   "tests": [

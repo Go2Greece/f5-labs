@@ -302,6 +302,105 @@
     return form;
   }
 
+  function stamp() {
+    var n = new Date(), p2 = function (x) { return (x < 10 ? '0' : '') + x; };
+    return n.getFullYear() + '-' + p2(n.getMonth() + 1) + '-' + p2(n.getDate()) + ' ' + p2(n.getHours()) + ':' + p2(n.getMinutes()) + ':' + p2(n.getSeconds());
+  }
+
+  // A pop-up that creates or edits one record of a list, as the device does for file types.
+  // index -1 means a new record. Everything shown comes from the screen's "editor" definition.
+  function openEditor(s, index) {
+    var ed = s.editor, rowsNow = cfgGet(s.collection) || [], isNew = index < 0;
+    var rec = isNew ? clone(ed.defaults || {}) : clone(rowsNow[index]);
+    var prev = document.querySelector('.modalwrap'); if (prev) prev.parentNode.removeChild(prev);
+    var wrap = el('div', undefined, 'modalwrap'), dlg = el('div', undefined, 'modal');
+    dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true'); dlg.setAttribute('aria-label', ed.title);
+    dlg.appendChild(el('div', ed.title, 'mtitle'));
+    var body = el('div', undefined, 'mbody'), form = el('div', undefined, 'form plain'), err = el('div', '', 'err'); err.hidden = true;
+    function seg(options, value, onPick, label) {
+      var g = el('div', undefined, 'seg'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', label);
+      options.forEach(function (o) {
+        var b = el('button', o); b.type = 'button'; b.setAttribute('role', 'radio'); b.className = o === value ? 'on' : ''; b.setAttribute('aria-checked', o === value ? 'true' : 'false');
+        b.addEventListener('click', function () {
+          var all = g.querySelectorAll('button'); for (var i = 0; i < all.length; i++) { all[i].className = all[i] === b ? 'on' : ''; all[i].setAttribute('aria-checked', all[i] === b ? 'true' : 'false'); }
+          onPick(o);
+        });
+        g.appendChild(b);
+      });
+      return g;
+    }
+    ed.fields.forEach(function (f) {
+      var row = el('div', undefined, 'row'), lb = el('div', f.label, 'lbl'), ctl = el('div', undefined, 'ctl');
+      if (f.required) lb.appendChild(el('span', ' *', 'req'));
+      if (f.type === 'key') {
+        if (isNew) {
+          var ki = el('input'); ki.type = 'text'; ki.value = rec[f.field] || ''; ki.setAttribute('aria-label', f.label); ki.autocomplete = 'off'; ki.spellcheck = false;
+          ki.addEventListener('input', function () { rec[f.field] = ki.value; }); ctl.appendChild(ki); setTimeout(function () { ki.focus(); }, 0);
+        } else ctl.appendChild(el('span', '\u2713 ' + rec[f.field], 'ro keyname'));
+      } else if (f.type === 'segmented') {
+        var info = el('div', undefined, 'ro sub');
+        var paint = function () {
+          info.textContent = '';
+          if (f.infoWhen && rec[f.field] !== f.infoWhen) return;
+          (f.info || []).forEach(function (ln) { if (!rec[ln.field]) return; var d = el('div'); d.appendChild(el('b', ln.label + ': ')); d.appendChild(document.createTextNode(rec[ln.field])); info.appendChild(d); });
+        };
+        ctl.appendChild(seg(f.options, rec[f.field], function (o) {
+          var was = rec[f.field]; rec[f.field] = o;
+          // Turning a timed setting on stamps the time, as the device does for staging.
+          if (f.stampOn && o === f.stampOn.value && was !== o) f.stampOn.fields.forEach(function (k) { rec[k] = stamp(); });
+          paint();
+        }, f.label));
+        ctl.appendChild(info); paint();
+      } else if (f.type === 'length') {
+        var num = el('input'); num.type = 'text'; num.className = 'num'; num.value = rec[f.field] == null ? '' : rec[f.field]; num.setAttribute('aria-label', f.label + ' value');
+        num.disabled = rec[f.modeField] === 'Any';
+        num.addEventListener('input', function () { rec[f.field] = num.value; });
+        ctl.appendChild(seg(['Any', 'Length'], rec[f.modeField], function (o) { rec[f.modeField] = o; num.disabled = o === 'Any'; }, f.label));
+        ctl.appendChild(num); ctl.appendChild(el('span', f.suffix || 'bytes', 'suffix'));
+      } else if (f.type === 'note') {
+        ctl.appendChild(el('span', f.text || '', 'ro'));
+        if (f.warning) ctl.appendChild(el('div', '\u26A0 ' + f.warning, 'ro sub warn'));
+      }
+      row.appendChild(lb); row.appendChild(ctl); form.appendChild(row);
+    });
+    body.appendChild(form); body.appendChild(err); dlg.appendChild(body);
+    var foot = el('div', undefined, 'mfoot');
+    var ok = el('button', isNew ? (ed.createLabel || 'Create') : (ed.updateLabel || 'Update'), 'mbtn primary'); ok.type = 'button';
+    var cancel = el('button', 'Cancel', 'mbtn'); cancel.type = 'button';
+    function close() { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); document.removeEventListener('keydown', onKey); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    cancel.addEventListener('click', close);
+    ok.addEventListener('click', function () {
+      var msg = '';
+      ed.fields.forEach(function (f) {
+        if (msg) return;
+        if (f.type === 'key') {
+          var k = String(rec[f.field] || '').trim(); rec[f.field] = k;
+          if (!k) msg = f.label + ' is required.';
+          else if (isNew && rowsNow.some(function (r) { return String(r[f.field]).toLowerCase() === k.toLowerCase(); })) msg = f.label + ' "' + k + '" already exists.';
+        }
+        if (f.type === 'length' && rec[f.modeField] === 'Length') {
+          var v = String(rec[f.field] == null ? '' : rec[f.field]).trim();
+          if (!/^[0-9]+$/.test(v)) msg = f.label + ' must be a whole number of bytes.';
+          else rec[f.field] = parseInt(v, 10);
+        }
+      });
+      if (msg) { err.textContent = msg; err.hidden = false; return; }
+      // A new record that starts with a timed setting on gets its timestamps now.
+      ed.fields.forEach(function (f) {
+        if (f.stampOn && rec[f.field] === f.stampOn.value) f.stampOn.fields.forEach(function (k) { if (!rec[k]) rec[k] = stamp(); });
+      });
+      var list = clone(rowsNow);
+      if (isNew) { if (ed.insertAt === 'top') list.unshift(rec); else list.push(rec); } else list[index] = rec;
+      cfgSet(s.collection, list); close();
+      go(current, (isNew ? 'Created.' : 'Updated.') + ' Apply the policy to put the change into effect.'); send();
+    });
+    foot.appendChild(ok); foot.appendChild(cancel); dlg.appendChild(foot);
+    wrap.appendChild(dlg); wrap.addEventListener('mousedown', function (e) { if (e.target === wrap) close(); });
+    document.body.appendChild(wrap);
+  }
+
   function renderScreen() {
     var s = lab.screens[current], box = $('screen'); box.textContent = '';
     var pb = $('pathbar'), ptxt = rp(s.pathText || (s.path || []).join(' : ')), parts = ptxt.split(' \u00BB ');
@@ -353,15 +452,29 @@
       var mrows = cfgGet(s.collection) || [], msel = {}, mboxes = [];
       var top = el('div', undefined, 'mtop'), sum = el('div', undefined, 'msum'), acts = el('div', undefined, 'macts');
       (s.summary || []).forEach(function (it) {
-        var sp = el('span'); sp.appendChild(el('b', String(it.bold || '').replace('{n}', mrows.length))); sp.appendChild(document.createTextNode(' ' + (it.text || ''))); sum.appendChild(sp);
+        var n = it.countWhere ? mrows.filter(function (r) { return Object.keys(it.countWhere).every(function (k) { return String(r[k]) === String(it.countWhere[k]); }); }).length : mrows.length;
+        var sp = el('span'); sp.appendChild(el('b', String(it.bold || '').replace('{n}', n))); sp.appendChild(document.createTextNode(' ' + (it.text || ''))); sum.appendChild(sp);
       });
       (s.buttons || []).forEach(function (bt) {
         var b = el('button', bt.label + (bt.menu ? ' \u25BE' : ''), 'mbtn ' + (bt.kind || 'plain')); b.type = 'button';
         if (bt.screen) b.addEventListener('click', function () { go(bt.screen); });
+        else if (bt.op === 'create' && s.editor) b.addEventListener('click', function () { openEditor(s, -1); });
         else if (bt.op === 'delete') b.addEventListener('click', function () {
-          var keep = mrows.filter(function (_, i) { return !msel[i]; });
-          if (keep.length === mrows.length) return;
-          cfgSet(s.collection, keep); go(current, 'Deleted.'); send();
+          var picked = mrows.filter(function (_, i) { return msel[i]; });
+          if (!picked.length) { go(current, 'Select at least one entry first.'); return; }
+          var locked = picked.filter(function (r) { return r.locked; });
+          if (locked.length) { go(current, (bt.lockedText || 'This entry cannot be deleted.')); return; }
+          cfgSet(s.collection, mrows.filter(function (_, i) { return !msel[i]; })); go(current, 'Deleted. Apply the policy to put the change into effect.'); send();
+        });
+        else if (bt.op === 'set') b.addEventListener('click', function () {
+          // Sets fields on every ticked row, for example Enforce turns staging off.
+          var any = false, list = clone(mrows);
+          list.forEach(function (r, i) {
+            if (!msel[i]) return; any = true;
+            Object.keys(bt.set || {}).forEach(function (k) { r[k] = bt.set[k] === '$now' ? stamp() : bt.set[k]; });
+          });
+          if (!any) { go(current, 'Select at least one entry first.'); return; }
+          cfgSet(s.collection, list); go(current, (bt.doneText || 'Updated.') + ' Apply the policy to put the change into effect.'); send();
         });
         else { b.disabled = true; b.title = 'Not part of this lab'; }
         acts.appendChild(b);
@@ -380,7 +493,13 @@
         cb.addEventListener('change', function () { msel[i] = cb.checked; }); mboxes.push(cb); tdc.appendChild(cb); tr.appendChild(tdc);
         s.columns.forEach(function (c) {
           var td = el('td'), v = r[c.field];
+          if (c.anyWhen && r[c.anyWhen] === 'Any') v = 'Any';
+          if (c.map && c.map[v] !== undefined) v = c.map[v];
           if (c.type === 'check') td.appendChild(el('span', v ? '\u2713' : '', 'tickmark'));
+          else if (c.opens === 'editor' && s.editor) {
+            var lk = el('a', v == null ? '' : String(v), 'linkish'); lk.href = '#';
+            lk.addEventListener('click', function (ev) { ev.preventDefault(); openEditor(s, i); }); td.appendChild(lk);
+          }
           else td.appendChild(el('span', v == null ? '' : String(v), c.style === 'link' ? 'linkish' : ''));
           tr.appendChild(td);
         });

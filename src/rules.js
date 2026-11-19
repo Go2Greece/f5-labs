@@ -20,8 +20,10 @@ export function getPath(obj, path) {
   return cur;
 }
 
+// Values are compared as trimmed, case-insensitive text, so 100 and "100" are the same.
 function norm(v) {
-  return typeof v === "string" ? v.trim().toLowerCase() : v;
+  if (v === null || v === undefined || typeof v === "object") return v;
+  return String(v).trim().toLowerCase();
 }
 
 function same(a, b) {

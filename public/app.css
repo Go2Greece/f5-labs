@@ -350,3 +350,24 @@ table.mgrid .linkish{color:#3b5fb0}
 table.mgrid .tickmark{color:#3d62b3;font-weight:700;font-size:15px}
 table.mgrid td.empty{text-align:center;color:#4b5160}
 table.mgrid td .linkish{white-space:nowrap}
+
+/* Pop-up record editor (File Type Properties) */
+.modalwrap{position:fixed;inset:0;background:rgba(40,44,52,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:12px;font-family:FreeSans,Arial,Helvetica,sans-serif}
+.modal{background:#fff;width:700px;max-width:100%;max-height:100%;display:flex;flex-direction:column;border-radius:3px;box-shadow:0 10px 40px rgba(0,0,0,.4);overflow:hidden}
+.modal .mtitle{background:#dddcd8;font-size:24px;padding:22px 20px;color:#0a0e1c}
+.modal .mbody{padding:22px 20px 26px;overflow:auto}
+.modal .mfoot{background:#dce8f5;border-top:1px solid #a9bfd8;padding:10px 20px;display:flex;justify-content:flex-end;gap:8px}
+.modal .mfoot .mbtn{min-width:124px;padding:6px 16px;font-weight:400;font-size:14px}
+.modal .mfoot .mbtn.primary{background:#7f9bcf;border-color:#6d8ac0}
+.modal .mfoot .mbtn.primary:hover{background:#3d62b3}
+.modal .form.plain .row{grid-template-columns:240px minmax(0,1fr)}
+.modal .form.plain .row>.lbl{font-size:13px;padding:11px 4px}
+.modal .form.plain input[type=text]{font:inherit;padding:5px 8px;border:1px solid #c3c7d1;border-radius:2px}
+.modal .req{color:#3d62b3;font-weight:700}
+.modal .keyname{font-style:italic;font-size:13px}
+.modal .ro.sub{font-size:12px;color:#2c3140;line-height:1.5}
+.modal .ro.sub.warn{color:#3b5fb0}
+.modal .seg button{min-width:100px;font-size:13px;padding:5px 10px}
+.modal input.num:disabled{background:#f4f4f2;color:#9aa0ad}
+.modal .err{margin-top:10px;color:#8A1F1F;font-size:13px}
+@media (max-width:1000px){.modal .mtitle{font-size:17px;padding:10px 14px}.modal .mbody{padding:10px 14px}.modal .form.plain .row{grid-template-columns:150px minmax(0,1fr)}.modal .seg button{min-width:0}}
