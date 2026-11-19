@@ -1,5 +1,6 @@
 import { withDb, safeError } from "./db.js";
 import { login, callback, logout, userFromSession, readCookie } from "./auth.js";
+import { getCourse, getLab, checkLab, runSeed } from "./labs.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -46,9 +47,25 @@ async function me(request, env) {
       email: user.email,
       name: user.name,
       access: Array.isArray(user.access) ? user.access : [],
+      admin: Boolean(user.admin),
     });
   } catch (err) {
     return json({ signedIn: false, error: safeError(err) }, 500);
+  }
+}
+
+// Runs fn(db, user) for a signed-in user and turns its { status, body } into a response.
+async function signedIn(request, env, fn) {
+  if (!readCookie(request, "sid")) return json({ error: "Please sign in." }, 401);
+  try {
+    const out = await withDb(env, async (db) => {
+      const user = await userFromSession(db, request);
+      if (!user) return { status: 401, body: { error: "Please sign in." } };
+      return await fn(db, user);
+    });
+    return json(out.body, out.status);
+  } catch (err) {
+    return json({ error: safeError(err) }, 500);
   }
 }
 
@@ -58,6 +75,20 @@ export default {
     const path = url.pathname;
     if (path === "/api/health") return health(env);
     if (path === "/api/me") return me(request, env);
+    if (path === "/api/course" && request.method === "GET") {
+      return signedIn(request, env, (db, user) => getCourse(db, user, url.searchParams.get("id")));
+    }
+    if (path === "/api/lab" && request.method === "GET") {
+      return signedIn(request, env, (db, user) => getLab(db, user, url.searchParams.get("id")));
+    }
+    if (path === "/api/lab/check" && request.method === "POST") {
+      const body = await request.json().catch(() => null);
+      if (!body) return json({ error: "Bad request." }, 400);
+      return signedIn(request, env, (db, user) => checkLab(db, user, body));
+    }
+    if (path === "/api/admin/seed") {
+      return signedIn(request, env, (db, user) => runSeed(db, user, url.searchParams.get("replace") === "1"));
+    }
     if (path === "/auth/login") return login(request, env);
     if (path === "/auth/callback") return callback(request, env);
     if (path === "/auth/logout") return logout(request, env);

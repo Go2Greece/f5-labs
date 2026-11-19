@@ -67,6 +67,7 @@
     var out=document.createElement('a');out.href='/auth/logout';out.textContent='Sign out';who.appendChild(out);
     if(!d.access.length){
       $('pendingText').textContent='Signed in as '+d.email+'.';
+      if(d.admin){var ap=document.createElement('p');ap.style.marginTop='16px';var al=document.createElement('a');al.href='/setup';al.textContent='Admin: setup and lab data';ap.appendChild(al);$('pending').appendChild(ap);}
       show('pending');return;
     }
     var list=$('courseList');
@@ -75,6 +76,7 @@
       a.href='/course.html?id='+encodeURIComponent(id);a.textContent=id;
       s.textContent='Open labs';a.appendChild(s);li.appendChild(a);list.appendChild(li);
     });
+    if(d.admin){var p=document.createElement('p');p.style.marginTop='16px';var l=document.createElement('a');l.href='/setup';l.textContent='Admin: setup and lab data';p.appendChild(l);$('courses').appendChild(p);}
     show('courses');
   }).catch(function(e){$('problemText').textContent=String(e);show('problem');});
 })();

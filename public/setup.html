@@ -22,6 +22,11 @@
   <p>Setup check: the site is live. Testing the database connection.</p>
   <div id="status">Checking MongoDB Atlas...</div>
   <pre id="detail"></pre>
+  <p style="margin-top:20px"><strong>Lab data.</strong> Loads the course and lab records into Atlas. Records already there are left unchanged. Admin only.</p>
+  <button id="seed" type="button" style="padding:10px 16px;border-radius:8px;border:0;background:#0B7A6B;color:#fff;font-weight:600;cursor:pointer">Load lab data into Atlas</button>
+  <button id="reseed" type="button" style="padding:10px 16px;border-radius:8px;border:1px solid #8A4205;background:#fff;color:#8A4205;font-weight:600;cursor:pointer;margin-left:8px">Replace with latest (development only)</button>
+  <pre id="seedout"></pre>
+  <p><a href="/">Front page</a></p>
 </main>
 <script>
 fetch('/api/health').then(function(r){return r.json();}).then(function(d){
@@ -33,6 +38,12 @@ fetch('/api/health').then(function(r){return r.json();}).then(function(d){
   var s=document.getElementById('status');s.className='bad';s.textContent='Could not reach the Worker.';
   document.getElementById('detail').textContent=String(e);
 });
+function seed(q){
+  var o=document.getElementById('seedout');o.textContent='Working...';
+  fetch('/api/admin/seed'+q,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){o.textContent=JSON.stringify(d,null,2);}).catch(function(e){o.textContent=String(e);});
+}
+document.getElementById('seed').addEventListener('click',function(){seed('');});
+document.getElementById('reseed').addEventListener('click',function(){seed('?replace=1');});
 </script>
 </body>
 </html>

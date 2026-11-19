@@ -1,0 +1,101 @@
+*{box-sizing:border-box}
+html,body{height:100%}
+body{font-family:system-ui,"Segoe UI",Arial,sans-serif;margin:0;background:#F4F6F5;color:#1B2523;font-size:14px}
+a{color:#0B5E54}
+:focus-visible{outline:2px solid #0B7A6B;outline-offset:2px}
+[hidden]{display:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 20px;background:#12302B;color:#fff}
+.topbar .brand{font-weight:600;font-size:15px;color:#fff;text-decoration:none}
+.topbar .who{font-size:12px;color:#C9D8D4}
+.topbar .who a{color:#fff;margin-left:10px}
+.crumbs{font-size:12px;color:#C9D8D4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.crumbs a{color:#C9D8D4}
+.crumbs b{color:#fff;font-weight:600}
+.page{max-width:760px;margin:6vh auto;padding:0 20px}
+.card{background:#fff;border:1px solid #D5DDDA;border-radius:10px;padding:24px}
+h1{font-size:22px;margin:0 0 8px}
+h2{font-size:15px;margin:22px 0 8px;color:#55625F;font-weight:600}
+p{margin:0 0 14px;color:#55625F;line-height:1.5}
+.lablist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lablist a,.lablist span.off{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #D5DDDA;border-radius:8px;text-decoration:none;color:#1B2523;font-weight:600}
+.lablist span.off{color:#8A9692;font-weight:400}
+.lablist small{font-weight:400;color:#55625F;white-space:nowrap}
+.lablist small.done{color:#0B5E54;font-weight:600}
+.btn{display:inline-block;padding:8px 14px;border-radius:6px;border:1px solid #0B7A6B;background:#0B7A6B;color:#fff;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.ghost{background:#fff;color:#0B5E54}
+.btn.small{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* Lab layout: device menu | device screen | lesson steps. Fills the viewport, built for landscape. */
+.lab{display:grid;grid-template-rows:auto 1fr;height:100vh;height:100dvh}
+.lab .cols{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;min-height:0}
+.nav{background:#1F2A28;color:#DCE5E2;overflow:auto;padding:8px 0;font-size:13px}
+.nav .grp{padding:7px 14px;font-weight:600;color:#fff}
+.nav .sub{padding:5px 14px;color:#9FB0AC;font-size:12px;text-transform:none}
+.nav button{display:block;width:100%;text-align:left;background:none;border:0;color:#DCE5E2;font:inherit;padding:7px 14px;cursor:pointer;border-left:3px solid transparent}
+.nav button:hover{background:#2A3835}
+.nav button.on{background:#0B5E54;color:#fff;border-left-color:#7FD6C6}
+.device{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border-left:1px solid #D5DDDA;border-right:1px solid #D5DDDA}
+.devbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:#EEF2F1;border-bottom:1px solid #D5DDDA;font-size:12px;color:#55625F}
+.devbar .pending{color:#8A4205;font-weight:600}
+.devbar .right{display:flex;align-items:center;gap:10px}
+.screen{padding:16px;overflow:auto;flex:1;min-height:0}
+.screen .path{font-size:12px;color:#55625F;margin-bottom:6px}
+.screen h1{font-size:18px;margin:0 0 12px}
+table.grid{width:100%;border-collapse:collapse;font-size:13px}
+table.grid th{text-align:left;background:#EEF2F1;border:1px solid #D5DDDA;padding:7px 10px;font-weight:600}
+table.grid td{border:1px solid #D5DDDA;padding:7px 10px}
+table.grid td.empty{color:#55625F;text-align:center;padding:16px}
+.toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
+.form{border:1px solid #D5DDDA;border-radius:6px}
+.form .row{display:grid;grid-template-columns:220px minmax(0,1fr);border-bottom:1px solid #E6ECEA}
+.form .row:last-child{border-bottom:0}
+.form .row>label,.form .row>.lbl{padding:10px 12px;background:#F7F9F8;font-weight:600;font-size:13px}
+.form .row>.ctl{padding:8px 12px}
+.form input[type=text],.form select{font:inherit;padding:6px 8px;border:1px solid #9FB0AC;border-radius:4px;width:100%;max-width:360px;background:#fff}
+.form .radio{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-weight:400}
+.form .help{font-size:12px;color:#55625F;margin-top:6px}
+.form .err{font-size:12px;color:#8A1F1F;margin-top:6px}
+.actions{display:flex;gap:8px;margin-top:12px}
+.flash{margin-bottom:10px;padding:8px 12px;border-radius:6px;background:#E3F4EF;color:#0B5E54;font-size:13px}
+.lesson{display:flex;flex-direction:column;min-height:0;background:#FBFCFB}
+.lesson .head{padding:14px 16px;border-bottom:1px solid #D5DDDA}
+.lesson .head h2{margin:0 0 6px;font-size:15px;color:#1B2523}
+.lesson .head p{margin:0;font-size:13px}
+.lesson .body{padding:12px 16px;overflow:auto;flex:1;min-height:0}
+.bar{height:6px;background:#E1E8E5;border-radius:3px;overflow:hidden;margin:6px 0 12px}
+.bar>div{height:100%;background:#0B7A6B;width:0;transition:width .25s}
+.count{font-size:12px;color:#55625F}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ol.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:9px 10px;border:1px solid #D5DDDA;border-radius:8px;background:#fff;font-size:13px;line-height:1.4}
+ol.steps li.done{background:#E3F4EF;border-color:#9AD3C6}
+ol.steps li.now{border:2px solid #9A4A06;background:#FFF8EE}
+ol.steps .tick{width:20px;height:20px;border-radius:50%;border:2px solid #9FB0AC;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+ol.steps li.done .tick{background:#0B7A6B;border-color:#0B7A6B}
+ol.steps small{display:block;color:#55625F;font-size:12px;margin-top:2px}
+.tests{margin-top:14px;padding-top:12px;border-top:1px solid #D5DDDA}
+.tests h3{font-size:13px;margin:0 0 8px}
+.tests pre{font:12px/1.4 ui-monospace,Consolas,monospace;background:#1F2A28;color:#DCE5E2;padding:8px 10px;border-radius:6px;margin:0 0 8px;white-space:pre-wrap}
+.result{margin-top:8px;padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.4;background:#EEF2F1}
+.result.blocked{background:#E3F4EF;color:#0B5E54}
+.result.allowed,.result.logged{background:#FFF8EE;color:#6B3F06}
+.complete{margin-top:12px;padding:10px 12px;border-radius:8px;background:#0B7A6B;color:#fff;font-weight:600;font-size:13px}
+.lesson .foot{padding:10px 16px;border-top:1px solid #D5DDDA;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#55625F}
+.rotate{display:none}
+@media (max-width:1000px){
+  body{font-size:13px}
+  .lab .cols{grid-template-columns:170px minmax(0,1fr) 230px}
+  .form .row{grid-template-columns:140px minmax(0,1fr)}
+  .screen{padding:10px}
+  .nav{font-size:12px}
+}
+@media (max-height:480px){
+  .topbar{padding:5px 12px}
+  .devbar{padding:4px 10px}
+  .lesson .head{padding:8px 12px}
+  .lesson .head p{display:none}
+}
+@media (orientation:portrait) and (max-width:700px){
+  .lab .cols{display:none}
+  .rotate{display:block;padding:40px 24px;text-align:center}
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lab | F5 Labs</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="lab">
+  <div class="topbar">
+    <div class="crumbs" id="crumbs">Loading...</div>
+    <div class="who"><a href="/auth/logout">Sign out</a></div>
+  </div>
+  <div class="rotate"><h1>Turn your device sideways</h1><p>The lab needs a landscape screen.</p></div>
+  <div class="cols">
+    <nav class="nav" id="nav" aria-label="Device menu"></nav>
+    <section class="device">
+      <div class="devbar">
+        <div id="devinfo"></div>
+        <div class="right"><span class="pending" id="pending" hidden>Changes not yet applied</span><button class="btn small" id="apply" type="button">Apply</button></div>
+      </div>
+      <div class="screen" id="screen"></div>
+    </section>
+    <aside class="lesson" aria-label="Lesson steps">
+      <div class="head"><h2 id="ltitle"></h2><p id="lintro"></p></div>
+      <div class="body">
+        <div class="count" id="count"></div>
+        <div class="bar"><div id="bar"></div></div>
+        <ol class="steps" id="steps"></ol>
+        <div class="tests" id="tests"></div>
+        <div class="complete" id="complete" hidden>Lab complete. Well done.</div>
+      </div>
+      <div class="foot"><span id="saved"></span><button class="btn small ghost" id="reset" type="button">Start again</button></div>
+    </aside>
+  </div>
+</div>
+<script src="/lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "_id": "owasp-v1",
+  "code": "owasp",
+  "version": 1,
+  "title": "OWASP Top 10 with F5 Advanced WAF",
+  "engine": "v1",
+  "modules": [
+    {
+      "id": "m01",
+      "title": "URL access control",
+      "labs": ["owasp-v1.m01.lab01"]
+    }
+  ]
+}

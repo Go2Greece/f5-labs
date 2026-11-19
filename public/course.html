@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Course labs | F5 Labs</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="topbar"><a class="brand" href="/">F5 Labs</a><div class="who"><a href="/auth/logout">Sign out</a></div></div>
+<div class="page"><div class="card" id="card"><p>Loading...</p></div></div>
+<script>
+(function(){
+  var id=new URLSearchParams(location.search).get('id')||'';
+  var card=document.getElementById('card');
+  function el(tag,text,cls){var e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+  fetch('/api/course?id='+encodeURIComponent(id),{credentials:'same-origin'}).then(function(r){
+    if(r.status===401){location.href='/';return null;}
+    return r.json();
+  }).then(function(c){
+    if(!c)return;
+    card.textContent='';
+    if(c.error){card.appendChild(el('h1','Not available'));card.appendChild(el('p',c.error));var b=el('a','Back','btn ghost');b.href='/';card.appendChild(b);return;}
+    document.title=c.title+' | F5 Labs';
+    card.appendChild(el('h1',c.title));
+    card.appendChild(el('p','Version '+c.version+'. Choose a lab.'));
+    c.modules.forEach(function(m){
+      card.appendChild(el('h2',m.title));
+      var ul=el('ul',undefined,'lablist');
+      m.labs.forEach(function(l){
+        var li=el('li');
+        if(!l.available){li.appendChild(el('span',l.title+' (coming soon)','off'));}
+        else{
+          var a=el('a');a.href='/lab.html?id='+encodeURIComponent(l.id);
+          a.appendChild(el('span',l.title));
+          var s=el('small',l.complete?'Complete':(l.stepsTotal?l.stepsDone+' of '+l.stepsTotal+' steps':'Not started'),l.complete?'done':'');
+          a.appendChild(s);li.appendChild(a);
+        }
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+    });
+  }).catch(function(e){card.textContent='Could not load the course: '+e;});
+})();
+</script>
+</body>
+</html>

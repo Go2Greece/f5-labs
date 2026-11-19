@@ -1,0 +1,172 @@
+{
+  "_id": "owasp-v1.m01.lab01",
+  "courseId": "owasp-v1",
+  "moduleId": "m01",
+  "order": 1,
+  "title": "Block a URL with a disallowed URL entry",
+  "intro": "The application has an admin page at /admin that must never be reachable from the internet. Add it as a disallowed URL, put the policy in blocking mode, apply the policy, then prove the request is blocked.",
+  "device": { "hostname": "bigip1.lab.local", "policy": "lab_policy" },
+  "applyLabel": "Apply Policy",
+  "startScreen": "policies",
+  "initial": {
+    "config": {
+      "policy": { "name": "lab_policy", "enforcementMode": "Transparent" },
+      "policies": [
+        { "name": "lab_policy", "virtualServer": "vs_web_https", "template": "Rapid Deployment Policy" }
+      ],
+      "allowedUrls": [
+        { "protocol": "HTTP", "url": "*" },
+        { "protocol": "HTTPS", "url": "*" }
+      ],
+      "disallowedUrls": []
+    }
+  },
+  "menu": [
+    {
+      "label": "Security",
+      "children": [
+        {
+          "label": "Application Security",
+          "children": [
+            { "label": "Security Policies", "children": [{ "label": "Policies List", "screen": "policies" }] },
+            {
+              "label": "URLs",
+              "children": [
+                { "label": "Allowed URLs", "screen": "allowedUrls" },
+                { "label": "Disallowed URLs", "screen": "disallowedUrls" }
+              ]
+            },
+            {
+              "label": "Policy Building",
+              "children": [{ "label": "Learning and Blocking Settings", "screen": "blockingSettings" }]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "screens": {
+    "policies": {
+      "type": "list",
+      "path": ["Security", "Application Security", "Security Policies", "Policies List"],
+      "title": "Policies List",
+      "collection": "policies",
+      "columns": [
+        { "field": "name", "label": "Policy Name" },
+        { "field": "virtualServer", "label": "Virtual Server" },
+        { "field": "template", "label": "Template" }
+      ]
+    },
+    "allowedUrls": {
+      "type": "list",
+      "path": ["Security", "Application Security", "URLs", "Allowed URLs"],
+      "title": "Allowed HTTP URLs",
+      "collection": "allowedUrls",
+      "columns": [
+        { "field": "protocol", "label": "Protocol" },
+        { "field": "url", "label": "URL" }
+      ]
+    },
+    "disallowedUrls": {
+      "type": "list",
+      "path": ["Security", "Application Security", "URLs", "Disallowed URLs"],
+      "title": "Disallowed HTTP URLs",
+      "collection": "disallowedUrls",
+      "emptyText": "No records to display.",
+      "createScreen": "disallowedUrlCreate",
+      "allowDelete": true,
+      "columns": [
+        { "field": "protocol", "label": "Protocol" },
+        { "field": "url", "label": "URL" }
+      ]
+    },
+    "disallowedUrlCreate": {
+      "type": "create",
+      "path": ["Security", "Application Security", "URLs", "Disallowed URLs", "New Disallowed HTTP URL"],
+      "title": "New Disallowed HTTP URL",
+      "collection": "disallowedUrls",
+      "returnTo": "disallowedUrls",
+      "fields": [
+        { "id": "protocol", "label": "Protocol", "type": "select", "options": ["HTTP", "HTTPS"], "default": "HTTP" },
+        { "id": "url", "label": "URL (Explicit only)", "type": "text", "placeholder": "/path", "required": true, "mustStartWith": "/" }
+      ]
+    },
+    "blockingSettings": {
+      "type": "form",
+      "path": ["Security", "Application Security", "Policy Building", "Learning and Blocking Settings"],
+      "title": "Learning and Blocking Settings",
+      "fields": [
+        {
+          "id": "enforcementMode",
+          "label": "Enforcement Mode",
+          "type": "radio",
+          "options": ["Transparent", "Blocking"],
+          "bind": "policy.enforcementMode",
+          "help": "Transparent logs violations without blocking. Blocking rejects requests that trigger a violation set to block."
+        }
+      ]
+    }
+  },
+  "tests": [
+    {
+      "id": "adminRequest",
+      "label": "Send GET /admin",
+      "request": "GET /admin HTTP/1.1\nHost: www.lab.local",
+      "outcomes": [
+        {
+          "when": {
+            "all": [
+              { "path": "applied.disallowedUrls", "some": { "protocol": "HTTP", "url": "/admin" } },
+              { "path": "applied.policy.enforcementMode", "equals": "Blocking" }
+            ]
+          },
+          "result": "blocked",
+          "message": "Request rejected. Violation: Illegal URL. The requested URL was rejected. Your support ID is: 1846290173466120"
+        },
+        {
+          "when": { "path": "applied.disallowedUrls", "some": { "protocol": "HTTP", "url": "/admin" } },
+          "result": "logged",
+          "message": "HTTP/1.1 200 OK. The admin page loaded. The policy logged an Illegal URL violation but did not block, because it is in Transparent mode."
+        },
+        {
+          "when": { "path": "config.disallowedUrls", "some": { "protocol": "HTTP", "url": "/admin" } },
+          "result": "allowed",
+          "message": "HTTP/1.1 200 OK. The admin page loaded. Your changes exist but have not been applied to the policy."
+        }
+      ],
+      "default": { "result": "allowed", "message": "HTTP/1.1 200 OK. The admin page loaded. Nothing in the policy disallows /admin." }
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "text": "Open Security › Application Security › URLs › Disallowed URLs.",
+      "check": { "path": "visited", "includes": "disallowedUrls" }
+    },
+    {
+      "id": "s2",
+      "text": "Create a disallowed HTTP URL for /admin.",
+      "check": { "path": "config.disallowedUrls", "some": { "protocol": "HTTP", "url": "/admin" } }
+    },
+    {
+      "id": "s3",
+      "text": "In Learning and Blocking Settings, set Enforcement Mode to Blocking and save.",
+      "check": { "path": "config.policy.enforcementMode", "equals": "Blocking" }
+    },
+    {
+      "id": "s4",
+      "text": "Apply the policy.",
+      "check": {
+        "all": [
+          { "path": "applied.disallowedUrls", "some": { "protocol": "HTTP", "url": "/admin" } },
+          { "path": "applied.policy.enforcementMode", "equals": "Blocking" }
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "text": "Send the test request and confirm /admin is blocked.",
+      "check": { "path": "tests.adminRequest", "equals": "blocked" }
+    }
+  ]
+}
