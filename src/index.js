@@ -31,7 +31,7 @@ async function health(env) {
       ms: Date.now() - started,
     });
   } catch (err) {
-    return json({ ok: false, error: safeError(err), ms: Date.now() - started }, 500);
+    return json({ ok: false, error: safeError(err), ms: Date.now() - started });
   }
 }
 
