@@ -1,7 +1,7 @@
 // Course and lab API. Lab content and the rules that mark a step done come from Atlas.
 // The rules are evaluated here on the server and are never sent to the browser.
 import { evalRule } from "./rules.js";
-import { seed, SEED_COURSES } from "./seed.js";
+import { seed, syncDrafts, SEED_COURSES } from "./seed.js";
 
 function hasAccess(user, courseId) {
   return Array.isArray(user.access) && user.access.includes(courseId);
@@ -63,6 +63,7 @@ function publicLab(lab) {
 
 export async function getCourse(db, user, courseId) {
   if (!hasAccess(user, courseId)) return { status: 403, body: { error: "You do not have access to this course." } };
+  if (SEED_COURSES.some((c) => c._id === courseId && c.draft)) await syncDrafts(db);
   let course = await db.collection("courses").findOne({ _id: courseId });
   if (!course && SEED_COURSES.some((c) => c._id === courseId)) {
     // First time this course is opened: load its records into Atlas. Existing records are never changed.
@@ -107,7 +108,8 @@ export async function getCourse(db, user, courseId) {
   };
 }
 
-async function loadLab(db, user, labId) {
+async function loadLab(db, user, labId, sync) {
+  if (sync) await syncDrafts(db);
   const lab = await db.collection("labs").findOne({ _id: labId });
   if (!lab) return { error: { status: 404, body: { error: "Lab not found." } } };
   if (!hasAccess(user, lab.courseId)) return { error: { status: 403, body: { error: "You do not have access to this lab." } } };
@@ -115,7 +117,7 @@ async function loadLab(db, user, labId) {
 }
 
 export async function getLab(db, user, labId) {
-  const { lab, error } = await loadLab(db, user, labId);
+  const { lab, error } = await loadLab(db, user, labId, true);
   if (error) return error;
   const course = await db.collection("courses").findOne({ _id: lab.courseId });
   const saved = await db.collection("progress").findOne({ _id: progressId(user, labId) });

@@ -69,28 +69,104 @@
   }
 
   // ---- device menu ----
-  function renderNav() {
-    var nav = $('nav'); nav.textContent = '';
-    function walk(items, depth) {
-      items.forEach(function (it) {
-        if (it.children) {
-          var h = el('div', it.label, depth === 0 ? 'grp' : 'sub'); h.style.paddingLeft = (14 + depth * 12) + 'px';
-          nav.appendChild(h); walk(it.children, depth + 1);
-        } else {
-          var b = el('button', it.label); b.type = 'button'; b.style.paddingLeft = (14 + depth * 12) + 'px';
-          var scr = lab.screens[current];
-          if (it.screen === current || (scr && scr.returnTo === it.screen)) b.className = 'on';
-          b.addEventListener('click', function () { go(it.screen); });
-          nav.appendChild(b);
-        }
-      });
+  // Works like the device's main menu. Top-level items open in place; items below that open
+  // fly-out panels to the right, by hover with a mouse or by tap on a touch screen.
+  var openTop = {}, flys = [], flyTimer = null;
+  function findTrail(items, screenId, trail) {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.screen === screenId) return trail.concat(it.label);
+      if (it.children) { var r = findTrail(it.children, screenId, trail.concat(it.label)); if (r) return r; }
     }
-    walk(lab.menu, 0);
+    return null;
   }
+  function activeTrail() {
+    var scr = lab.screens[current], target = (scr && scr.returnTo) || current;
+    return findTrail(lab.menu, target, []) || [];
+  }
+  function openTrailTo(screenId) {
+    var scr = lab.screens[screenId], target = (scr && scr.returnTo) || screenId;
+    var trail = findTrail(lab.menu, target, []);
+    if (trail && trail.length) openTop[trail[0]] = true;
+  }
+  function closeFlys(fromLevel) {
+    while (flys.length > fromLevel) { var f = flys.pop(); if (f.parentNode) f.parentNode.removeChild(f); }
+    if (fromLevel === 0) { var marked = document.querySelectorAll('.nav .row.hot'); for (var i = 0; i < marked.length; i++) marked[i].classList.remove('hot'); }
+  }
+  function keepFlys() { if (flyTimer) { clearTimeout(flyTimer); flyTimer = null; } }
+  function leaveFlys() { keepFlys(); flyTimer = setTimeout(function () { closeFlys(0); }, 500); }
+
+  function menuRow(it, level, trail, active) {
+    var b = el('button'); b.type = 'button'; b.className = 'row';
+    var here = trail.concat(it.label), inTrail = active.slice(0, here.length).join('|') === here.join('|');
+    if (inTrail) b.classList.add('on');
+    b.appendChild(el('span', it.label, 'lbl'));
+    if (it.children) {
+      b.appendChild(el('span', '▸', 'arrow'));
+      b.setAttribute('aria-haspopup', 'true');
+      var open = function () {
+        keepFlys(); closeFlys(level);
+        var sibs = b.parentNode.querySelectorAll('.row.hot'); for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('hot');
+        b.classList.add('hot');
+        showFly(it.children, b, level, here, active);
+      };
+      b.addEventListener('mouseenter', open);
+      b.addEventListener('click', open);
+    } else if (it.screen) {
+      b.addEventListener('mouseenter', function () { keepFlys(); closeFlys(level); });
+      b.addEventListener('click', function () { closeFlys(0); go(it.screen); });
+    } else {
+      b.classList.add('off'); b.setAttribute('aria-disabled', 'true'); b.title = 'Not part of this lab';
+      b.addEventListener('mouseenter', function () { keepFlys(); closeFlys(level); });
+    }
+    return b;
+  }
+
+  function showFly(items, anchor, level, trail, active) {
+    var fly = el('div', undefined, 'fly'); fly.setAttribute('role', 'menu');
+    items.forEach(function (it) { fly.appendChild(menuRow(it, level + 1, trail, active)); });
+    fly.addEventListener('mouseenter', keepFlys); fly.addEventListener('mouseleave', leaveFlys);
+    document.body.appendChild(fly); flys.push(fly);
+    var r = anchor.getBoundingClientRect(), w = fly.offsetWidth, h = fly.offsetHeight;
+    var left = r.right, top = r.top;
+    if (left + w > window.innerWidth - 4) left = Math.max(4, window.innerWidth - w - 4);
+    if (top + h > window.innerHeight - 4) top = Math.max(4, window.innerHeight - h - 4);
+    fly.style.left = left + 'px'; fly.style.top = top + 'px';
+  }
+
+  function renderNav() {
+    closeFlys(0);
+    var nav = $('nav'); nav.textContent = '';
+    var active = activeTrail();
+    lab.menu.forEach(function (it) {
+      var top = el('button', it.label, 'top'); top.type = 'button';
+      if (!it.children && !it.screen) { top.classList.add('off'); top.setAttribute('aria-disabled', 'true'); top.title = 'Not part of this lab'; nav.appendChild(top); return; }
+      var isOpen = Boolean(openTop[it.label]);
+      if (isOpen) top.classList.add('open');
+      top.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      top.addEventListener('click', function () {
+        if (it.screen) { go(it.screen); return; }
+        openTop[it.label] = !isOpen; renderNav();
+      });
+      nav.appendChild(top);
+      if (isOpen && it.children) {
+        var panel = el('div', undefined, 'panel');
+        it.children.forEach(function (c) { panel.appendChild(menuRow(c, 0, [it.label], active)); });
+        nav.appendChild(panel);
+      }
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (!flys.length) return;
+    var n = e.target; while (n) { if (n.classList && (n.classList.contains('fly') || n.classList.contains('nav'))) return; n = n.parentNode; }
+    closeFlys(0);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeFlys(0); });
 
   function go(screenId, message) {
     if (!lab.screens[screenId]) return;
     current = screenId; flash = message || '';
+    openTrailTo(screenId);
     var isNew = state.visited.indexOf(screenId) === -1;
     if (isNew) state.visited.push(screenId);
     renderNav(); renderScreen(); renderBar();
@@ -259,8 +335,9 @@
     });
     $('reset').addEventListener('click', function () {
       lastTest = null;
-      send({ reset: true }).then(function () { current = null; go(lab.startScreen || Object.keys(lab.screens)[0]); });
+      send({ reset: true }).then(function () { current = null; openTop = {}; go(lab.startScreen || Object.keys(lab.screens)[0]); });
     });
+    $('nav').addEventListener('mouseleave', leaveFlys); $('nav').addEventListener('mouseenter', keepFlys);
     renderLesson(d.complete);
     go(lab.startScreen || Object.keys(lab.screens)[0]);
   }

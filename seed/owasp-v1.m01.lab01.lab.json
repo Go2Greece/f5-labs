@@ -1,5 +1,7 @@
 {
   "_id": "owasp-v1.m01.lab01",
+  "rev": 4,
+  "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
   "order": 1,
@@ -40,8 +42,50 @@
   },
   "menu": [
     {
+      "label": "Statistics"
+    },
+    {
+      "label": "iApps"
+    },
+    {
+      "label": "Wizards"
+    },
+    {
+      "label": "DNS"
+    },
+    {
+      "label": "SSL Orchestrator"
+    },
+    {
+      "label": "Local Traffic"
+    },
+    {
+      "label": "Traffic Intelligence"
+    },
+    {
+      "label": "Acceleration"
+    },
+    {
+      "label": "Subscriber Management"
+    },
+    {
+      "label": "Access"
+    },
+    {
+      "label": "Device Management"
+    },
+    {
+      "label": "Shared Objects"
+    },
+    {
       "label": "Security",
       "children": [
+        {
+          "label": "Overview"
+        },
+        {
+          "label": "Guided Configuration"
+        },
         {
           "label": "Application Security",
           "children": [
@@ -55,28 +99,107 @@
               ]
             },
             {
-              "label": "URLs",
-              "children": [
-                {
-                  "label": "Allowed URLs",
-                  "screen": "allowedUrls"
-                },
-                {
-                  "label": "Disallowed URLs",
-                  "screen": "disallowedUrls"
-                }
-              ]
-            },
-            {
               "label": "Policy Building",
               "children": [
+                {
+                  "label": "Traffic Learning"
+                },
                 {
                   "label": "Learning and Blocking Settings",
                   "screen": "blockingSettings"
                 }
               ]
+            },
+            {
+              "label": "Vulnerability Assessments"
+            },
+            {
+              "label": "URLs",
+              "children": [
+                {
+                  "label": "Allowed URLs",
+                  "children": [
+                    {
+                      "label": "Allowed HTTP URLs",
+                      "screen": "allowedUrls"
+                    },
+                    {
+                      "label": "Allowed WebSocket URLs"
+                    }
+                  ]
+                },
+                {
+                  "label": "Disallowed URLs",
+                  "children": [
+                    {
+                      "label": "Disallowed HTTP URLs",
+                      "screen": "disallowedUrls"
+                    },
+                    {
+                      "label": "Disallowed WebSocket URLs"
+                    }
+                  ]
+                },
+                {
+                  "label": "Wildcards Order"
+                },
+                {
+                  "label": "Character Set"
+                },
+                {
+                  "label": "Flows List"
+                }
+              ]
+            },
+            {
+              "label": "Parameters"
+            },
+            {
+              "label": "Session Tracking"
+            },
+            {
+              "label": "Content Profiles"
+            },
+            {
+              "label": "Audit Reports"
+            },
+            {
+              "label": "Advanced Settings"
             }
           ]
+        },
+        {
+          "label": "Protocol Security"
+        },
+        {
+          "label": "Network Firewall"
+        },
+        {
+          "label": "Network Address Translation"
+        },
+        {
+          "label": "Zones"
+        },
+        {
+          "label": "Packet Filter"
+        },
+        {
+          "label": "DoS Protection"
+        },
+        {
+          "label": "Bot Defense"
+        },
+        {
+          "label": "Event Logs"
+        },
+        {
+          "label": "Reporting"
+        },
+        {
+          "label": "Debug"
+        },
+        {
+          "label": "Options"
         }
       ]
     }
@@ -356,7 +479,7 @@
   "steps": [
     {
       "id": "s1",
-      "text": "Open Security › Application Security › URLs › Disallowed URLs.",
+      "text": "In the main menu, go to Security › Application Security › URLs › Disallowed URLs › Disallowed HTTP URLs.",
       "check": {
         "path": "visited",
         "includes": "disallowedUrls"
@@ -376,7 +499,7 @@
     },
     {
       "id": "s3",
-      "text": "In Learning and Blocking Settings, set Enforcement Mode to Blocking and save.",
+      "text": "Go to Security › Application Security › Policy Building › Learning and Blocking Settings, set Enforcement Mode to Blocking and click Save.",
       "check": {
         "path": "config.policy.enforcementMode",
         "equals": "Blocking"

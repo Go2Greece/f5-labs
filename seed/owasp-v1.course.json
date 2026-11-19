@@ -1,5 +1,7 @@
 {
   "_id": "owasp-v1",
+  "rev": 4,
+  "draft": true,
   "code": "owasp",
   "version": 1,
   "title": "OWASP Top 10 with F5 Advanced WAF",
@@ -8,7 +10,9 @@
     {
       "id": "m01",
       "title": "URL access control",
-      "labs": ["owasp-v1.m01.lab01"]
+      "labs": [
+        "owasp-v1.m01.lab01"
+      ]
     }
   ]
 }
