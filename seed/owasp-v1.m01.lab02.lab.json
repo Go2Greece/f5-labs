@@ -1,6 +1,6 @@
 {
   "_id": "owasp-v1.m01.lab02",
-  "rev": 1,
+  "rev": 2,
   "draft": true,
   "courseId": "owasp-v1",
   "moduleId": "m01",
@@ -519,7 +519,8 @@
         {
           "field": "url",
           "label": "URL",
-          "style": "link"
+          "opens": "detail",
+          "screen": "disallowedUrlProps"
         }
       ]
     },
@@ -1074,6 +1075,29 @@
           }
         ]
       }
+    },
+    "disallowedUrlProps": {
+      "type": "detail",
+      "returnTo": "disallowedUrls",
+      "pathText": "Security » Application Security : URLs : Disallowed URLs : Disallowed HTTP URLs » Disallowed HTTP URL Properties",
+      "tabs": [
+        {
+          "label": "Disallowed HTTP URL Properties",
+          "screen": "disallowedUrlProps"
+        }
+      ],
+      "title": "Disallowed URL Properties",
+      "fields": [
+        {
+          "label": "URL",
+          "text": "[{protocol}] {url}",
+          "italic": "({type})"
+        }
+      ],
+      "buttons": [
+        "Cancel",
+        "Update"
+      ]
     }
   },
   "tests": [

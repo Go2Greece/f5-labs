@@ -3,7 +3,7 @@
 // the server decides which steps are done.
 (function () {
   var labId = new URLSearchParams(location.search).get('id') || '';
-  var sideOpen = {}, sideNav = null;
+  var sideOpen = {}, sideNav = null, detailRec = null;
   var lab = null, state = null, steps = {}, current = null, flash = '', lastTests = {}, busy = 0;
 
   function $(id) { return document.getElementById(id); }
@@ -550,6 +550,12 @@
         var tr = el('tr');
         if (s.allowDelete) { var td = el('td', undefined, 'chk'), cb = el('input'); boxes.push(cb); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Select row ' + (i + 1)); cb.addEventListener('change', function () { selected[i] = cb.checked; }); td.appendChild(cb); tr.appendChild(td); }
         s.columns.forEach(function (c) {
+          if (c.opens === 'detail' && c.screen) {
+            // Clicking the value opens that record's read-only properties screen.
+            var dc = el('td'), dl = el('a', r[c.field]); dl.href = '#';
+            dl.addEventListener('click', function (ev) { ev.preventDefault(); detailRec = clone(r); go(c.screen); });
+            dc.appendChild(dl); tr.appendChild(dc); return;
+          }
           if (!c.link) { var cell = el('td'); cell.appendChild(el('span', r[c.field], c.style === 'link' ? 'linkish' : '')); tr.appendChild(cell); return; }
           // A linked cell opens that record, for example clicking a policy name selects the policy.
           var td2 = el('td'), a = el('a', r[c.field]); a.href = '#';
@@ -574,6 +580,25 @@
         foot.appendChild(del);
       } else foot.appendChild(el('span'));
       foot.appendChild(el('span', 'Total Entries: ' + rows.length, 'total'));
+    }
+
+    if (s.type === 'detail') {
+      // Read-only properties of one record. Text in {braces} is filled from the record.
+      if (!detailRec) { go(s.returnTo); return; }
+      var fill = function (tpl) { return String(tpl || '').replace(/\{(\w+)\}/g, function (_, k) { return detailRec[k] == null ? '' : detailRec[k]; }); };
+      var dform = el('div', undefined, 'form');
+      (s.fields || []).forEach(function (f) {
+        var row = el('div', undefined, 'row'); row.appendChild(el('div', f.label, 'lbl'));
+        var ctl = el('div', undefined, 'ctl'); ctl.appendChild(document.createTextNode(fill(f.text)));
+        if (f.italic) { ctl.appendChild(document.createTextNode(' ')); ctl.appendChild(el('i', fill(f.italic), 'small')); }
+        row.appendChild(ctl); dform.appendChild(row);
+      });
+      host.appendChild(dform);
+      var dact = el('div', undefined, 'actions');
+      (s.buttons || ['Cancel', 'Update']).forEach(function (label) {
+        var db = el('button', label, 'btn ghost'); db.type = 'button'; db.addEventListener('click', function () { go(s.returnTo); }); dact.appendChild(db);
+      });
+      host.appendChild(dact);
     }
 
     if (s.type === 'create') {

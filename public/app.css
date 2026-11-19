@@ -377,3 +377,5 @@ table.mgrid td .linkish{white-space:nowrap}
 .dropmenu button:last-child{border-bottom:0}
 .dropmenu button:hover{background:#dce8f5}
 .tests .tcase{margin-bottom:12px}
+.form .ctl i.small{font-size:12px}
+.screen .actions{gap:4px}
